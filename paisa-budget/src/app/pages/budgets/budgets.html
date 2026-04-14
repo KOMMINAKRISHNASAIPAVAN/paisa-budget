@@ -1,0 +1,301 @@
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+  <div>
+    <h1>Budgets</h1>
+    <p>Set and manage your spending limits — monthly or weekly.</p>
+  </div>
+  <button class="btn btn-primary" (click)="openModal()">+ New Budget</button>
+</div>
+
+<!-- Period Toggle -->
+<div class="period-toggle">
+  <button class="toggle-btn" [class.active]="activePeriod() === 'all'" (click)="setFilter('all')">All</button>
+  <button class="toggle-btn monthly" [class.active]="activePeriod() === 'monthly'" (click)="setFilter('monthly')">
+    <span class="toggle-icon">📅</span> Monthly
+  </button>
+  <button class="toggle-btn weekly" [class.active]="activePeriod() === 'weekly'" (click)="setFilter('weekly')">
+    <span class="toggle-icon">📆</span> Weekly
+  </button>
+</div>
+
+<!-- Summary Strip -->
+<div class="summary-strip">
+  <div class="strip-item">
+    <span class="strip-label">Total Budget</span>
+    <span class="strip-value">₹{{ summaryTotal().toLocaleString() }}</span>
+  </div>
+  <div class="strip-item">
+    <span class="strip-label">Total Spent</span>
+    <span class="strip-value" style="color:#ef4444;">₹{{ summarySpent().toLocaleString() }}</span>
+  </div>
+  <div class="strip-item">
+    <span class="strip-label">Remaining</span>
+    <span class="strip-value" [style.color]="summaryLeft() >= 0 ? '#10b981' : '#ef4444'">
+      ₹{{ summaryLeft().toLocaleString() }}
+    </span>
+  </div>
+  <div class="strip-item">
+    <span class="strip-label">Active</span>
+    <span class="strip-value">{{ activeBudgets().length }} / {{ filteredBudgets().length }}</span>
+  </div>
+</div>
+
+<!-- Empty state -->
+@if (filteredBudgets().length === 0) {
+  <div class="empty-budgets">
+    <div class="empty-budgets-icon">💰</div>
+    <h3>No budgets yet</h3>
+    <p>Click <strong>+ New Budget</strong> to set your total budget and split it across categories.</p>
+    <button class="btn btn-primary" (click)="openModal()">+ New Budget</button>
+  </div>
+}
+
+<!-- Budget Cards -->
+@if (filteredBudgets().length === 0) {}
+@else if (activePeriod() === 'all') {
+
+  <!-- ALL view: grouped by Monthly then Weekly -->
+  @if (monthlyBudgets().length > 0) {
+    <div class="budget-section-header">
+      <span class="section-icon">📅</span> Monthly Budgets
+      <span class="section-count">{{ monthlyBudgets().length }}</span>
+    </div>
+    <div class="budgets-grid">
+      @for (b of monthlyBudgets(); track b.id) {
+        <ng-container *ngTemplateOutlet="budgetCard; context: { b: b }"></ng-container>
+      }
+    </div>
+  }
+
+  @if (weeklyBudgets().length > 0) {
+    <div class="budget-section-header" style="margin-top: 20px;">
+      <span class="section-icon">📆</span> Weekly Budgets
+      <span class="section-count">{{ weeklyBudgets().length }}</span>
+    </div>
+    <div class="budgets-grid">
+      @for (b of weeklyBudgets(); track b.id) {
+        <ng-container *ngTemplateOutlet="budgetCard; context: { b: b }"></ng-container>
+      }
+    </div>
+  }
+
+} @else {
+
+  <!-- Monthly / Weekly filtered view -->
+  <div class="budgets-grid">
+    @for (b of filteredBudgets(); track b.id) {
+      <ng-container *ngTemplateOutlet="budgetCard; context: { b: b }"></ng-container>
+    }
+  </div>
+
+}
+
+<!-- ── Reusable budget card template ── -->
+<ng-template #budgetCard let-b="b">
+  <div class="budget-card card" [class.inactive]="!b.active">
+    <div class="bc-header">
+      <span class="bc-icon">{{ b.icon }}</span>
+      <div class="bc-info">
+        <div class="bc-category">{{ b.category }}</div>
+        <div class="bc-period">{{ b.period }}</div>
+      </div>
+      <div class="bc-header-actions">
+        <div class="bc-toggle-wrap">
+          <span class="bc-toggle-label">{{ b.active ? 'Active' : 'Hidden' }}</span>
+          <div class="bc-toggle" [class.on]="b.active" (click)="toggleActive(b)">
+            <div class="bc-toggle-knob"></div>
+          </div>
+        </div>
+        <button class="bc-delete-btn" (click)="deleteBudget(b)" title="Delete budget">🗑️</button>
+      </div>
+    </div>
+
+    <div class="bc-pills">
+      <span class="period-pill" [class]="b.type === 'monthly' ? 'pill-monthly' : 'pill-weekly'">
+        {{ b.type === 'monthly' ? '📅 Monthly' : '📆 Weekly' }}
+      </span>
+      <span class="badge" [class]="b.status === 'Over' ? 'badge-red' : b.status === 'On Track' ? 'badge-green' : 'badge-yellow'">
+        {{ b.status }}
+      </span>
+    </div>
+
+    <div class="bc-body" [class.dimmed]="!b.active">
+      <div class="bc-amounts">
+        <span class="bc-spent">₹{{ b.spent.toLocaleString() }} spent</span>
+        <span class="bc-limit">of ₹{{ b.limit.toLocaleString() }}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill"
+             [style.width.%]="Math.min((b.spent / b.limit) * 100, 100)"
+             [style.background]="!b.active ? '#d1d5db' : b.spent > b.limit ? '#ef4444' : b.type === 'weekly' ? '#8b5cf6' : '#4f6ef7'">
+        </div>
+      </div>
+      <div class="bc-footer">
+        <span>{{ Math.round((b.spent / b.limit) * 100) }}% used</span>
+        <span [style.color]="!b.active ? '#9ca3af' : b.limit - b.spent < 0 ? '#ef4444' : '#6b7280'">
+          {{ b.limit - b.spent >= 0
+             ? '₹' + (b.limit - b.spent).toLocaleString() + ' left'
+             : '₹' + Math.abs(b.limit - b.spent).toLocaleString() + ' over' }}
+        </span>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<!-- ══════════════════════════════════════════════════════
+     NEW BUDGET MODAL
+══════════════════════════════════════════════════════ -->
+@if (showModal()) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal budget-modal" (click)="$event.stopPropagation()">
+
+      <!-- Step indicator -->
+      <div class="step-bar">
+        <div class="step-item" [class.done]="step() >= 1" [class.active]="step() === 1">
+          <div class="step-dot">1</div>
+          <span>Set Budget</span>
+        </div>
+        <div class="step-line" [class.filled]="step() === 2"></div>
+        <div class="step-item" [class.active]="step() === 2">
+          <div class="step-dot">2</div>
+          <span>Split Categories</span>
+        </div>
+      </div>
+
+      @if (formError()) {
+        <div class="modal-error">⚠️ {{ formError() }}</div>
+      }
+
+      <!-- ─── STEP 1: Total budget + period ─────────── -->
+      @if (step() === 1) {
+        <div class="step-content">
+          <h2 class="step-title">How much do you want to budget?</h2>
+          <p class="step-sub">Enter the total amount, then choose Monthly or Weekly.</p>
+
+          <div class="total-input-wrap">
+            <span class="total-prefix">₹</span>
+            <input
+              class="total-input"
+              type="number"
+              placeholder="0"
+              min="1"
+              [ngModel]="totalBudget()"
+              (ngModelChange)="totalBudget.set($event)"
+              name="totalBudget"
+              autofocus
+            />
+          </div>
+
+          <div class="period-selector">
+            <button
+              type="button"
+              class="period-card"
+              [class.selected]="periodType() === 'monthly'"
+              (click)="periodType.set('monthly')"
+            >
+              <span class="period-card-icon">📅</span>
+              <div class="period-card-label">Monthly</div>
+              <div class="period-card-sub">Reset every month</div>
+            </button>
+            <button
+              type="button"
+              class="period-card"
+              [class.selected]="periodType() === 'weekly'"
+              (click)="periodType.set('weekly')"
+            >
+              <span class="period-card-icon">📆</span>
+              <div class="period-card-label">Weekly</div>
+              <div class="period-card-sub">Reset every week</div>
+            </button>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" (click)="goToStep2()">
+              Next → Split Categories
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- ─── STEP 2: Category allocation ──────────── -->
+      @if (step() === 2) {
+        <div class="step-content">
+          <h2 class="step-title">Split across categories</h2>
+
+          <!-- Budget meter -->
+          <div class="budget-meter">
+            <div class="meter-row">
+              <span class="meter-label">
+                {{ periodType() === 'monthly' ? '📅 Monthly' : '📆 Weekly' }} Budget:
+                <strong>₹{{ (totalBudget() ?? 0).toLocaleString() }}</strong>
+              </span>
+              <span class="meter-remaining" [class.over]="remaining() < 0">
+                {{ remaining() >= 0 ? '₹' + remaining().toLocaleString() + ' remaining' : '₹' + Math.abs(remaining()).toLocaleString() + ' over budget!' }}
+              </span>
+            </div>
+            <div class="meter-bar">
+              <div
+                class="meter-fill"
+                [style.width.%]="remainingPct()"
+                [style.background]="remaining() < 0 ? '#ef4444' : remaining() === 0 ? '#10b981' : '#4f6ef7'"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Category rows -->
+          <div class="cat-alloc-list">
+            @for (a of allocations(); track a.category; let i = $index) {
+              <div class="cat-alloc-row" [class.filled]="a.amount && a.amount > 0">
+
+                <!-- Icon + name block -->
+                <div class="cat-alloc-left">
+                  <span class="cat-alloc-icon">{{ a.icon }}</span>
+                  @if (a.category === 'Other') {
+                    <input
+                      class="cat-alloc-custom"
+                      type="text"
+                      placeholder="Your category name"
+                      [ngModel]="a.customName"
+                      (ngModelChange)="updateCustomName(i, $event)"
+                      [name]="'custom_' + i"
+                    />
+                  } @else {
+                    <span class="cat-alloc-name">{{ a.category }}</span>
+                  }
+                </div>
+
+                <!-- Amount input -->
+                <div class="cat-alloc-input-wrap">
+                  <span class="cat-alloc-prefix">₹</span>
+                  <input
+                    class="cat-alloc-input"
+                    type="number"
+                    placeholder="0"
+                    min="0"
+                    [ngModel]="a.amount"
+                    (ngModelChange)="updateAllocation(i, $event || null)"
+                    [name]="'alloc_' + i"
+                  />
+                </div>
+
+                @if (a.amount && a.amount > 0 && totalBudget()) {
+                  <span class="cat-alloc-pct">{{ Math.round((a.amount / (totalBudget()!)) * 100) }}%</span>
+                } @else {
+                  <span class="cat-alloc-pct empty">—</span>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline" (click)="goBack()" [disabled]="saving()">← Back</button>
+            <button type="button" class="btn btn-primary" (click)="submitBudget()" [disabled]="saving()">
+              {{ saving() ? 'Saving...' : 'Create Budgets' }}
+            </button>
+          </div>
+        </div>
+      }
+
+    </div>
+  </div>
+}

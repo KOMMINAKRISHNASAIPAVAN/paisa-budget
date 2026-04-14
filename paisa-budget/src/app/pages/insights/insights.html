@@ -1,0 +1,132 @@
+<div class="page-header">
+  <h1>Insights</h1>
+  <p>Smart analytics to understand your spending habits.</p>
+</div>
+
+<!-- ── Stat Cards ──────────────────────────────────────── -->
+<div class="insights-stats" style="margin-bottom: 24px;">
+  <div class="stat-card">
+    <div class="stat-label">Monthly Spend</div>
+    <div class="stat-value">₹{{ monthlySpend().toLocaleString() }}</div>
+    <div class="stat-change" [style.color]="monthlySpend() > 0 ? '#ef4444' : '#9ca3af'">
+      {{ monthlySpend() > 0 ? 'This month' : 'No data yet' }}
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Weekly Spend</div>
+    <div class="stat-value">₹{{ weeklySpend().toLocaleString() }}</div>
+    <div class="stat-change" [style.color]="weeklySpend() > 0 ? '#f59e0b' : '#9ca3af'">
+      {{ weeklySpend() > 0 ? 'Last 7 days' : 'No data yet' }}
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Daily Spend</div>
+    <div class="stat-value">₹{{ dailySpend().toLocaleString() }}</div>
+    <div class="stat-change" [style.color]="dailySpend() > 0 ? '#10b981' : '#9ca3af'">
+      {{ dailySpend() > 0 ? 'Today' : 'Nothing today' }}
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Savings Rate</div>
+    <div class="stat-value">{{ savingsRate() }}%</div>
+    <div class="stat-change"
+         [class.positive]="savingsRate() >= 20"
+         [class.negative]="savingsRate() < 10 && hasData()"
+         [style.color]="!hasData() ? '#9ca3af' : ''">
+      {{ !hasData() ? 'No data yet' : savingsRate() >= 20 ? 'Great!' : 'Needs attention' }}
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Biggest Category</div>
+    <div class="stat-value" style="font-size:20px;">{{ biggestCategory() }}</div>
+    <div class="stat-change" [style.color]="categories().length > 0 ? '#6b7280' : '#9ca3af'">
+      @if (categories().length > 0) {
+        {{ categories()[0].pct }}% of total spend
+      } @else {
+        No data yet
+      }
+    </div>
+  </div>
+</div>
+
+<!-- ── Category Breakdown + Monthly Trend ─────────────── -->
+<div class="grid-2" style="margin-bottom: 24px;">
+
+  <div class="card">
+    <h3 style="font-size:16px; margin-bottom:20px;">Spending by Category</h3>
+    @if (categories().length === 0) {
+      <div class="insights-empty">
+        <span>📊</span>
+        <p>No expense data yet.<br>Add expenses to see category breakdown.</p>
+      </div>
+    } @else {
+      @for (cat of categories(); track cat.name) {
+        <div class="cat-row">
+          <div class="cat-dot" [style.background]="cat.color"></div>
+          <span class="cat-name">{{ cat.name }}</span>
+          <div class="cat-bar-wrap">
+            <div class="cat-bar" [style.width.%]="cat.pct" [style.background]="cat.color"></div>
+          </div>
+          <span class="cat-pct">{{ cat.pct }}%</span>
+          <span class="cat-amt">₹{{ cat.amount.toLocaleString() }}</span>
+        </div>
+      }
+    }
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:16px; margin-bottom:20px;">Monthly Trend</h3>
+    @if (months().length === 0 || months().every(m => m.expense === 0)) {
+      <div class="insights-empty">
+        <span>📈</span>
+        <p>No monthly data yet.<br>Start tracking to see your spending trend.</p>
+      </div>
+    } @else {
+      <div class="trend-chart">
+        @for (m of months(); track m.label) {
+          <div class="trend-col">
+            <div class="trend-bar-wrap">
+              <div class="trend-bar"
+                   [style.height.%]="maxMonthExpense() > 0 ? (m.expense / maxMonthExpense()) * 100 : 0"
+                   [class.active-month]="m.expense > 0">
+              </div>
+            </div>
+            <div class="trend-label">{{ m.label }}</div>
+            <div class="trend-val">
+              @if (m.expense > 0) { ₹{{ (m.expense / 1000).toFixed(0) }}k }
+              @else { — }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+</div>
+
+<!-- ── Smart Tips ──────────────────────────────────────── -->
+<div class="card">
+  <h3 style="font-size:16px; margin-bottom:20px;">Smart Tips</h3>
+  @if (tips().length === 0) {
+    <div class="insights-empty">
+      <span>💡</span>
+      <p>Tips will appear once you start adding budgets and expenses.</p>
+    </div>
+  } @else {
+    <div class="tips-grid">
+      @for (tip of tips(); track tip.title) {
+        <div class="tip-card">
+          <div class="tip-icon">{{ tip.icon }}</div>
+          <div>
+            <div class="tip-title">{{ tip.title }}</div>
+            <div class="tip-text">{{ tip.text }}</div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

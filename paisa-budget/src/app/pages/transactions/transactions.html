@@ -1,0 +1,55 @@
+<div class="page-header">
+  <h1>Transactions</h1>
+  <p>Complete history of all your money movements.</p>
+</div>
+
+<div class="tx-controls card" style="margin-bottom: 20px; padding: 16px 20px;">
+  <input class="search-box" type="text" placeholder="Search transactions..." />
+  <div class="tx-filters">
+    <select class="filter-select">
+      <option>All Types</option>
+      <option>Credit</option>
+      <option>Debit</option>
+    </select>
+    <select class="filter-select">
+      <option>This Month</option>
+      <option>Last Month</option>
+      <option>Last 3 Months</option>
+    </select>
+    <select class="filter-select">
+      <option>All Accounts</option>
+      <option>Savings</option>
+      <option>Current</option>
+    </select>
+  </div>
+</div>
+
+<div class="card">
+  @if (groupedTransactions().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">🔄</div>
+      <p>No transactions yet.<br>Add expenses from the <strong>Expense</strong> page to see them here.</p>
+    </div>
+  } @else {
+    @for (group of groupedTransactions(); track group.date) {
+      <div class="tx-group">
+        <div class="tx-group-date">{{ group.date }}</div>
+        @for (tx of group.items; track tx.id) {
+          <div class="tx-item">
+            <div class="tx-avatar">{{ tx.icon }}</div>
+            <div class="tx-body">
+              <div class="tx-name">{{ tx.description }}</div>
+              <div class="tx-sub">{{ tx.payment }} · {{ tx.category }}</div>
+            </div>
+            <div class="tx-right">
+              <div class="tx-amt debit">-₹{{ tx.amount.toLocaleString() }}</div>
+              <div class="tx-status">
+                <span class="badge badge-green">Completed</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
