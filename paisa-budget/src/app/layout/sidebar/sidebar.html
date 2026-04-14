@@ -1,0 +1,51 @@
+<!-- ── Desktop Sidebar ─────────────────────────────────────── -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <span class="brand-icon">💹</span>
+    <span class="brand-name">Paisa</span>
+  </div>
+
+  <ul class="nav-list">
+    @for (item of navItems; track item.route) {
+      <li>
+        <a [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">{{ item.icon }}</span>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      </li>
+    }
+  </ul>
+
+  <div class="sidebar-user">
+    <div class="user-avatar">
+      {{ auth.currentUser()?.name?.charAt(0)?.toUpperCase() ?? 'U' }}
+    </div>
+    <div class="user-info">
+      <div class="user-name">{{ auth.currentUser()?.name }}</div>
+      <div class="user-phone">{{ auth.currentUser()?.phone }}</div>
+    </div>
+    <button class="logout-btn" (click)="auth.logout()" title="Logout">🚪</button>
+  </div>
+</nav>
+
+<!-- ── Mobile Top Bar ──────────────────────────────────────── -->
+<header class="mobile-topbar">
+  <div class="mobile-brand">
+    <span>💹</span>
+    <span>Paisa Budget</span>
+  </div>
+  <button class="logout-btn-mobile" (click)="auth.logout()">
+    <span class="logout-icon">🚪</span>
+    <span class="logout-text">Logout</span>
+  </button>
+</header>
+
+<!-- ── Mobile Bottom Navigation ───────────────────────────── -->
+<nav class="bottom-nav">
+  @for (item of navItems; track item.route) {
+    <a [routerLink]="item.route" routerLinkActive="active" class="bottom-nav-item">
+      <span class="bottom-nav-icon">{{ item.icon }}</span>
+      <span class="bottom-nav-label">{{ item.label }}</span>
+    </a>
+  }
+</nav>

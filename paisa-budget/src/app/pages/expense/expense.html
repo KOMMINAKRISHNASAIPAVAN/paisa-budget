@@ -1,0 +1,177 @@
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+  <div>
+    <h1>Expense</h1>
+    <p>Track and add your daily expenses.</p>
+  </div>
+  <button class="btn btn-primary" (click)="openModal()">+ Add Expense</button>
+</div>
+
+<div class="grid-3" style="margin-bottom: 24px;">
+  <div class="stat-card">
+    <div class="stat-label">Today</div>
+    <div class="stat-value">₹{{ todayAmount().toLocaleString() }}</div>
+    <div class="stat-change negative">{{ filteredExpenses().length }} shown</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Expenses</div>
+    <div class="stat-value">{{ expenses().length }}</div>
+    <div class="stat-change negative">all time</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Filtered Total</div>
+    <div class="stat-value">₹{{ totalAmount().toLocaleString() }}</div>
+    <div class="stat-change negative">{{ filteredExpenses().length }} records</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="exp-table-header">
+    <h3>Expense Log</h3>
+    <div class="filters">
+      <select class="filter-select" [(ngModel)]="filterCat" (ngModelChange)="filterCat.set($event)" [ngModel]="filterCat()">
+        <option value="All">All Categories</option>
+        @for (cat of categories; track cat) {
+          <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+      <input type="date" class="filter-date" [ngModel]="filterDate()" (ngModelChange)="filterDate.set($event)" />
+    </div>
+  </div>
+
+  @if (filteredExpenses().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">💸</div>
+      <p>No expenses found. Add one using <strong>+ Add Expense</strong>.</p>
+    </div>
+  } @else {
+    <table class="exp-table">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Category</th>
+          <th>Date</th>
+          <th>Payment</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (e of filteredExpenses(); track e.id) {
+          <tr>
+            <td>
+              <div class="exp-desc">
+                <span class="exp-icon">{{ e.icon }}</span>
+                {{ e.description }}
+              </div>
+            </td>
+            <td><span class="badge badge-blue">{{ e.category }}</span></td>
+            <td>{{ e.date }}</td>
+            <td>{{ e.payment }}</td>
+            <td class="exp-amount">-₹{{ e.amount.toLocaleString() }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+<!-- ── Add Expense Modal ──────────────────────────────── -->
+@if (showModal()) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Add Expense</h2>
+        <button class="modal-close" (click)="closeModal()">✕</button>
+      </div>
+
+      @if (formError()) {
+        <div class="modal-error">⚠️ {{ formError() }}</div>
+      }
+
+      <form (ngSubmit)="submitExpense()" novalidate>
+        <div class="modal-grid">
+          <!-- Description -->
+          <div class="modal-field full">
+            <label class="modal-label">Description</label>
+            <input
+              class="modal-input"
+              type="text"
+              placeholder="e.g. Zomato Order, Metro Recharge..."
+              [(ngModel)]="form.description"
+              name="description"
+            />
+          </div>
+
+          <!-- Category -->
+          <div class="modal-field">
+            <label class="modal-label">Category</label>
+            <select
+              class="modal-input"
+              [(ngModel)]="form.category"
+              name="category"
+              (ngModelChange)="onCategoryChange()"
+            >
+              @for (cat of categories; track cat) {
+                <option [value]="cat">{{ categoryIcons[cat] }} {{ cat }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Amount -->
+          <div class="modal-field">
+            <label class="modal-label">Amount (₹)</label>
+            <div class="modal-input-wrap">
+              <span class="modal-prefix">₹</span>
+              <input
+                class="modal-input prefix"
+                type="number"
+                placeholder="0"
+                min="1"
+                [(ngModel)]="form.amount"
+                name="amount"
+              />
+            </div>
+          </div>
+
+          <!-- Payment method -->
+          <div class="modal-field">
+            <label class="modal-label">Payment Method</label>
+            <select class="modal-input" [(ngModel)]="form.payment" name="payment">
+              @for (p of payments; track p) {
+                <option [value]="p">{{ p }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Date -->
+          <div class="modal-field">
+            <label class="modal-label">Date</label>
+            <input
+              class="modal-input"
+              type="date"
+              [(ngModel)]="form.date"
+              name="date"
+            />
+          </div>
+
+          <!-- Preview icon -->
+          <div class="modal-field icon-preview-wrap">
+            <label class="modal-label">Preview</label>
+            <div class="icon-preview">
+              <span class="preview-icon">{{ form.icon }}</span>
+              <div>
+                <div class="preview-desc">{{ form.description || 'Your expense' }}</div>
+                <div class="preview-cat">{{ form.category }}</div>
+              </div>
+              <span class="preview-amt">-₹{{ (form.amount || 0).toLocaleString() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Expense</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

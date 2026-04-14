@@ -1,0 +1,20 @@
+.app-shell {
+  display: flex;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #f4f6fb;
+  padding: 32px;
+
+  @media (max-width: 768px) {
+    // top: mobile topbar height (54px) + gap
+    // bottom: bottom nav height (65px) + safe area
+    padding: 70px 14px 80px;
+  }
+}

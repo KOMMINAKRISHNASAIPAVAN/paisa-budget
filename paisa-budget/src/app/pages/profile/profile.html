@@ -1,0 +1,181 @@
+<div class="page-header">
+  <h1>Profile</h1>
+  <p>Manage your personal and financial settings.</p>
+</div>
+
+<div class="profile-layout">
+  <div class="profile-sidebar card">
+    <div class="avatar-wrap">
+      <div class="avatar">{{ initials() }}</div>
+    </div>
+    <div class="profile-name">{{ auth.currentUser()?.name }}</div>
+    <div class="profile-email">+91 {{ auth.currentUser()?.phone }}</div>
+
+    <div class="profile-stats">
+      <div class="ps-item">
+        <div class="ps-val">{{ savingsRate() }}%</div>
+        <div class="ps-lbl">Savings Rate</div>
+      </div>
+      <div class="ps-item">
+        <div class="ps-val">{{ totalBudgets() }}</div>
+        <div class="ps-lbl">Budgets</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-main">
+
+    <div class="card" style="margin-bottom: 20px;">
+      <h3 style="font-size: 16px; margin-bottom: 20px;">Personal Information</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" class="form-input" [value]="auth.currentUser()?.name ?? ''" readonly />
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="tel" class="form-input" [value]="auth.currentUser()?.phone ?? ''" readonly />
+        </div>
+        <div class="form-group">
+          <label>Currency</label>
+          <select class="form-input">
+            <option selected>INR (₹)</option>
+            <option>USD ($)</option>
+            <option>EUR (€)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- <div class="card" style="margin-bottom: 20px;">
+      <h3 style="font-size: 16px; margin-bottom: 20px;">Financial Settings</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Monthly Income</label>
+          <input type="text" value="₹55,000" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label>Savings Goal</label>
+          <input type="text" value="₹5,00,000" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label>Budget Period</label>
+          <select class="form-input">
+            <option selected>Monthly</option>
+            <option>Weekly</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Alert Threshold</label>
+          <select class="form-input">
+            <option>80%</option>
+            <option selected>90%</option>
+            <option>100%</option>
+          </select>
+        </div>
+      </div>
+    </div> -->
+
+    <!-- <div class="card" style="margin-bottom: 20px;">
+      <h3 style="font-size: 16px; margin-bottom: 20px;">Notifications</h3>
+      @for (n of notifications; track n.label) {
+        <div class="notif-row">
+          <div>
+            <div class="notif-label">{{ n.label }}</div>
+            <div class="notif-desc">{{ n.desc }}</div>
+          </div>
+          <div class="toggle" [class.on]="n.enabled" (click)="n.enabled = !n.enabled">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+      }
+    </div> -->
+
+    <!-- ── Monthly History (collapsible) ────────────────────── -->
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="history-toggle-row" (click)="showHistory.set(!showHistory())">
+        <div class="history-toggle-left">
+          <span class="history-toggle-icon">📅</span>
+          <div>
+            <div class="history-toggle-title">Monthly History</div>
+            <div class="history-toggle-sub">View your past spending month by month</div>
+          </div>
+        </div>
+        <div class="history-toggle-btn" [class.open]="showHistory()">
+          {{ showHistory() ? 'Hide' : 'Show' }}
+          <span class="history-chevron">›</span>
+        </div>
+      </div>
+
+      @if (showHistory()) {
+        <div class="history-body">
+          <div class="history-month-picker">
+            <label style="font-size:12px;font-weight:600;color:#6b7280;">Select Month</label>
+            <select class="form-input history-select"
+                    [ngModel]="selectedMonth()"
+                    (ngModelChange)="selectedMonth.set($event)">
+              @for (m of availableMonths(); track m.value) {
+                <option [value]="m.value">{{ m.label }}</option>
+              }
+            </select>
+          </div>
+
+          @if (selectedExpenses().length === 0) {
+            <div class="history-empty">
+              <div class="history-empty-icon">🗓️</div>
+              <p>No expenses recorded for this month.</p>
+            </div>
+          } @else {
+            <div class="history-summary">
+              <div class="hs-item">
+                <div class="hs-val">₹{{ selectedTotal().toLocaleString() }}</div>
+                <div class="hs-lbl">Total Spent</div>
+              </div>
+              <div class="hs-item">
+                <div class="hs-val">{{ selectedExpenses().length }}</div>
+                <div class="hs-lbl">Transactions</div>
+              </div>
+              <div class="hs-item">
+                <div class="hs-val">{{ selectedCategories().length }}</div>
+                <div class="hs-lbl">Categories</div>
+              </div>
+            </div>
+
+            <div class="history-section-title">By Category</div>
+            @for (cat of selectedCategories(); track cat.name) {
+              <div class="h-cat-row">
+                <div class="h-cat-dot" [style.background]="cat.color"></div>
+                <span class="h-cat-name">{{ cat.name }}</span>
+                <div class="h-cat-bar-wrap">
+                  <div class="h-cat-bar" [style.width.%]="cat.pct" [style.background]="cat.color"></div>
+                </div>
+                <span class="h-cat-pct">{{ cat.pct }}%</span>
+                <span class="h-cat-amt">₹{{ cat.amount.toLocaleString() }}</span>
+              </div>
+            }
+
+            <div class="history-section-title" style="margin-top: 20px;">Transactions</div>
+            @for (group of selectedGrouped(); track group.date) {
+              <div class="h-date-label">{{ group.date }}</div>
+              @for (tx of group.items; track tx.id) {
+                <div class="h-tx-row">
+                  <div class="h-tx-icon">{{ tx.icon }}</div>
+                  <div class="h-tx-body">
+                    <div class="h-tx-name">{{ tx.description }}</div>
+                    <div class="h-tx-sub">{{ tx.payment }} · {{ tx.category }}</div>
+                  </div>
+                  <div class="h-tx-amt">-₹{{ tx.amount.toLocaleString() }}</div>
+                </div>
+              }
+            }
+          }
+        </div>
+      }
+    </div>
+
+    <!-- <div style="display: flex; gap: 12px;">
+      <button class="btn btn-primary">Save Changes</button>
+      <button class="btn btn-outline">Cancel</button>
+    </div> -->
+  </div>
+</div>

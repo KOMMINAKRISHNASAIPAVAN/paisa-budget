@@ -1,0 +1,115 @@
+<!-- ═══ DESKTOP LAYOUT ═══ -->
+<div class="auth-page" [class.hidden-mobile]="true">
+
+  <div class="auth-left">
+    <div class="auth-brand">
+      <span class="brand-icon">💹</span>
+      <span class="brand-name">Paisa</span>
+    </div>
+    <h2 class="auth-tagline">Save smart.<br>Spend wise.<br>Live better.</h2>
+    <p class="auth-sub">Track your budgets, expenses and savings — all in one place.</p>
+    <div class="auth-features">
+      <div class="feat-item"><span>✅</span> Monthly & Weekly Budgets</div>
+      <div class="feat-item"><span>✅</span> Expense Tracking</div>
+      <div class="feat-item"><span>✅</span> Smart Insights</div>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-card">
+      <div class="auth-card-brand"><span>💹</span> Paisa</div>
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-hint">Login with your phone number</p>
+
+      @if (error()) {
+        <div class="auth-error">⚠️ {{ error() }}</div>
+      }
+
+      <form (ngSubmit)="submit()" #f="ngForm" novalidate>
+        <div class="field-group">
+          <label class="field-label">Phone Number</label>
+          <div class="input-wrap">
+            <span class="input-prefix">🇮🇳 +91</span>
+            <input class="field-input" type="tel" placeholder="Mobile Number"
+              maxlength="10" [(ngModel)]="phone" name="phone" autocomplete="tel" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <div class="input-wrap">
+            <input class="field-input" [type]="showPass() ? 'text' : 'password'"
+              placeholder="Enter your password" [(ngModel)]="password"
+              name="password" autocomplete="current-password" />
+            <button type="button" class="eye-btn" (click)="showPass.set(!showPass())">
+              {{ showPass() ? '🙈' : '👁️' }}
+            </button>
+          </div>
+        </div>
+
+        <button class="auth-btn" type="submit" [disabled]="loading()">
+          @if (loading()) { Logging in… } @else { Login }
+        </button>
+      </form>
+
+      <p class="auth-switch">
+        Don't have an account? <a routerLink="/register">Create one</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MOBILE LAYOUT ═══ -->
+<div class="mobile-auth">
+  <div class="mobile-hero">
+    <div class="mobile-glow"></div>
+    <div class="mobile-logo-icon">💹</div>
+    <div class="mobile-logo-name">Paisa Budget</div>
+    <div class="mobile-logo-sub">Save smart. Spend wise. Live better.</div>
+    <div class="mobile-features">
+      <span class="mobile-feat-pill">📊 Budgets</span>
+      <span class="mobile-feat-pill">💸 Expenses</span>
+      <span class="mobile-feat-pill">📈 Insights</span>
+    </div>
+  </div>
+
+  <div class="mobile-form-area">
+    <h2 class="mobile-form-title">Welcome back</h2>
+    <p class="mobile-form-hint">Login with your phone number</p>
+
+    @if (error()) {
+      <div class="mobile-error">⚠️ {{ error() }}</div>
+    }
+
+    <form (ngSubmit)="submit()" novalidate>
+      <div class="mobile-field">
+        <label class="mobile-label">Phone Number</label>
+        <div class="mobile-input-wrap">
+          <span class="mobile-prefix">🇮🇳 +91</span>
+          <input class="mobile-input" type="tel" placeholder="98765 43210"
+            maxlength="10" [(ngModel)]="phone" name="phone2" autocomplete="tel" />
+        </div>
+      </div>
+
+      <div class="mobile-field">
+        <label class="mobile-label">Password</label>
+        <div class="mobile-input-wrap">
+          <input class="mobile-input" [type]="showPass() ? 'text' : 'password'"
+            placeholder="Enter your password" [(ngModel)]="password"
+            name="password2" autocomplete="current-password" />
+          <button type="button" class="mobile-eye" (click)="showPass.set(!showPass())">
+            {{ showPass() ? '🙈' : '👁️' }}
+          </button>
+        </div>
+      </div>
+
+      <button class="mobile-btn" type="submit" [disabled]="loading()">
+        @if (loading()) { Logging in… } @else { Login }
+      </button>
+    </form>
+
+    <p class="mobile-switch">
+      Don't have an account? <a routerLink="/register">Create one</a>
+    </p>
+  </div>
+</div>

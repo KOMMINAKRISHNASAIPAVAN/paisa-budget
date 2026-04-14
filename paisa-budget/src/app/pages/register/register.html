@@ -1,0 +1,122 @@
+<div class="auth-page">
+
+  <!-- Left panel: hero (desktop = tall dark sidebar / mobile = compact top strip) -->
+  <div class="auth-left">
+    <div class="auth-glow"></div>
+    <div class="auth-brand">
+      <span class="brand-icon">💹</span>
+      <span class="brand-name">Paisa Budget</span>
+    </div>
+    <h2 class="auth-tagline">Your money.<br>Your rules.<br>Your future.</h2>
+    <p class="auth-sub">Join thousands managing their finances smarter with Paisa.</p>
+    <div class="auth-features">
+      <div class="feat-item"><span>✅</span> Free to use</div>
+      <div class="feat-item"><span>✅</span> Secure & Private</div>
+      <div class="feat-item"><span>✅</span> Works offline</div>
+    </div>
+  </div>
+
+  <!-- Right panel: form card -->
+  <div class="auth-right">
+    <div class="auth-card">
+      <div class="auth-card-brand"><span>💹</span> Paisa</div>
+      <h1 class="auth-title">Create account</h1>
+      <p class="auth-hint">Start your savings journey today</p>
+
+      @if (error()) { <div class="auth-error">⚠️ {{ error() }}</div> }
+
+      <form (ngSubmit)="submit()" novalidate>
+
+        <!-- Full Name -->
+        <div class="field-group">
+          <label class="field-label">Full Name</label>
+          <div class="input-wrap" [class.input-error]="touchedName() && !nameValid()" [class.input-ok]="touchedName() && nameValid()">
+            <span class="input-icon">👤</span>
+            <input class="field-input" type="text" placeholder="Full Name"
+              [ngModel]="name()" (ngModelChange)="name.set($event)" name="name" autocomplete="name"
+              (blur)="touchedName.set(true)" />
+            @if (touchedName() && nameValid()) { <span class="input-check">✓</span> }
+          </div>
+          @if (touchedName() && !nameValid()) {
+            <span class="field-hint error">{{ nameError() }}</span>
+          }
+        </div>
+
+        <!-- Phone -->
+        <div class="field-group">
+          <label class="field-label">Phone Number</label>
+          <div class="input-wrap" [class.input-error]="touchedPhone() && !phoneValid()" [class.input-ok]="touchedPhone() && phoneValid()">
+            <span class="input-prefix">🇮🇳 +91</span>
+            <input class="field-input" type="tel" placeholder="Mobile Number"
+              maxlength="10" [ngModel]="phone()" name="phone" autocomplete="tel"
+              (ngModelChange)="onPhoneInput($event)"
+              (blur)="touchedPhone.set(true)" />
+            @if (touchedPhone() && phoneValid()) { <span class="input-check">✓</span> }
+          </div>
+          @if (touchedPhone() && !phoneValid()) {
+            <span class="field-hint error">{{ phoneError() }}</span>
+          }
+          @if (touchedPhone() && phoneValid()) {
+            <span class="field-hint success">✓ Valid Indian mobile number</span>
+          }
+        </div>
+
+        <!-- Password -->
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <div class="input-wrap" [class.input-error]="touchedPass() && !passValid()" [class.input-ok]="touchedPass() && passValid()">
+            <input class="field-input" [type]="showPass() ? 'text' : 'password'"
+              placeholder="Min. 8 characters" [ngModel]="password()" (ngModelChange)="password.set($event)"
+              name="password" autocomplete="new-password"
+              (blur)="touchedPass.set(true)" />
+            <button type="button" class="eye-btn" (click)="showPass.set(!showPass())">
+              {{ showPass() ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          @if (password().length > 0) {
+            <div class="strength-bar-wrap">
+              @for (i of [0,1,2,3,4]; track i) {
+                <div class="strength-seg" [style.background]="i < passScore() ? passStrengthColor() : null"></div>
+              }
+              <span class="strength-label" [style.color]="passStrengthColor()">{{ passStrengthLabel() }}</span>
+            </div>
+            <div class="pass-checks">
+              <span class="pass-check" [class.met]="passChecks().length">{{ passChecks().length ? '✓' : '✗' }} 8+ chars</span>
+              <span class="pass-check" [class.met]="passChecks().upper">{{ passChecks().upper ? '✓' : '✗' }} Uppercase</span>
+              <span class="pass-check" [class.met]="passChecks().lower">{{ passChecks().lower ? '✓' : '✗' }} Lowercase</span>
+              <span class="pass-check" [class.met]="passChecks().number">{{ passChecks().number ? '✓' : '✗' }} Number</span>
+              <span class="pass-check" [class.met]="passChecks().special">{{ passChecks().special ? '✓' : '✗' }} Special char</span>
+            </div>
+          }
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="field-group">
+          <label class="field-label">Confirm Password</label>
+          <div class="input-wrap" [class.input-error]="touchedConfirm() && confirmPass().length > 0 && !confirmValid()" [class.input-ok]="touchedConfirm() && confirmValid()">
+            <input class="field-input" [type]="showConfirm() ? 'text' : 'password'"
+              placeholder="Re-enter password" [ngModel]="confirmPass()" (ngModelChange)="confirmPass.set($event)"
+              name="confirmPass" autocomplete="new-password"
+              (blur)="touchedConfirm.set(true)" />
+            <button type="button" class="eye-btn" (click)="showConfirm.set(!showConfirm())">
+              {{ showConfirm() ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          @if (confirmPass().length > 0 && !confirmValid()) {
+            <span class="field-hint error">Passwords don't match.</span>
+          }
+          @if (confirmValid()) {
+            <span class="field-hint success">✓ Passwords match</span>
+          }
+        </div>
+
+        <button class="auth-btn" type="submit" [disabled]="loading()">
+          @if (loading()) { Creating account… } @else { Create Account }
+        </button>
+      </form>
+
+      <p class="auth-switch">Already have an account? <a routerLink="/login">Login</a></p>
+    </div>
+  </div>
+
+</div>

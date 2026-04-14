@@ -1,0 +1,15 @@
+# Frontend
+paisa-budget/node_modules/
+paisa-budget/dist/
+paisa-budget/.angular/
+paisa-budget/android/
+
+# Backend
+backend/target/
+backend/*.jar
+
+# Misc
+*.zip
+*.bat
+electron-app/
+*.log
