@@ -1,4 +1,5 @@
 [build]
+  command = "npm install && ng build --configuration production"
   publish = "dist/paisa-budget/browser"
 
 [[redirects]]
