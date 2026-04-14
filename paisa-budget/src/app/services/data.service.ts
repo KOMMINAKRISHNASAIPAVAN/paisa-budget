@@ -1,4 +1,7 @@
 import { Injectable, signal, computed } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Budget {
   id: string;
@@ -22,30 +25,13 @@ export interface ExpenseItem {
   amount: number;
 }
 
-const SESSION_KEY = 'paisa_session';
-
-function userId(): string {
-  try {
-    const s = localStorage.getItem(SESSION_KEY);
-    return s ? String(JSON.parse(s).id ?? 'guest') : 'guest';
-  } catch { return 'guest'; }
-}
-
-function budgetsKey()  { return `paisa_budgets_${userId()}`; }
-function expensesKey() { return `paisa_expenses_${userId()}`; }
-
-function computeStatus(spent: number, limit: number): string {
-  const pct = limit > 0 ? (spent / limit) * 100 : 0;
-  if (pct >= 100) return 'Over Budget';
-  if (pct >= 90)  return 'At Risk';
-  return 'On Track';
-}
-
 @Injectable({ providedIn: 'root' })
 export class DataService {
 
   budgets  = signal<Budget[]>([]);
   expenses = signal<ExpenseItem[]>([]);
+
+  constructor(private http: HttpClient) {}
 
   // ── Load ──────────────────────────────────────────────────
   async loadAll() {
@@ -54,124 +40,153 @@ export class DataService {
 
   async loadBudgets() {
     try {
-      const data: Budget[] = JSON.parse(localStorage.getItem(budgetsKey()) ?? '[]');
-      this.budgets.set(data);
+      const data: any[] = await firstValueFrom(
+        this.http.get<any[]>(`${environment.apiUrl}/api/budgets`)
+      );
+      this.budgets.set(data.map(b => this.mapBudget(b)));
     } catch { this.budgets.set([]); }
   }
 
   async loadExpenses() {
     try {
-      const data: ExpenseItem[] = JSON.parse(localStorage.getItem(expensesKey()) ?? '[]');
-      this.expenses.set(data);
+      const data: any[] = await firstValueFrom(
+        this.http.get<any[]>(`${environment.apiUrl}/api/expenses`)
+      );
+      this.expenses.set(data.map(e => this.mapExpense(e)));
     } catch { this.expenses.set([]); }
   }
 
   // ── Budgets ───────────────────────────────────────────────
   async addBudgets(newBudgets: Budget[]): Promise<{ ok: boolean; error?: string }> {
-    const existing: Budget[] = JSON.parse(localStorage.getItem(budgetsKey()) ?? '[]');
-
-    for (const b of newBudgets) {
-      const idx = existing.findIndex(
-        e => e.category.toLowerCase() === b.category.toLowerCase() && e.type === b.type
+    try {
+      const payload = newBudgets.map(b => ({
+        category:    b.category,
+        icon:        b.icon,
+        type:        b.type,
+        periodLabel: b.period,
+        budgetLimit: b.limit,
+      }));
+      await firstValueFrom(
+        this.http.post<any[]>(`${environment.apiUrl}/api/budgets`, payload)
       );
-      if (idx >= 0) {
-        // Upsert — update limit, keep spent
-        existing[idx] = {
-          ...existing[idx],
-          icon:   b.icon,
-          limit:  b.limit,
-          period: b.period,
-          status: computeStatus(existing[idx].spent, b.limit),
-        };
-      } else {
-        existing.push({
-          ...b,
-          id:     `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-          spent:  0,
-          status: 'On Track',
-          active: true,
-        });
-      }
+      await this.loadBudgets();
+      return { ok: true };
+    } catch (err: any) {
+      return { ok: false, error: err?.error?.message ?? 'Failed to save budget.' };
     }
-
-    localStorage.setItem(budgetsKey(), JSON.stringify(existing));
-    await this.loadBudgets();
-    return { ok: true };
   }
 
   async toggleBudget(id: string) {
-    const list: Budget[] = JSON.parse(localStorage.getItem(budgetsKey()) ?? '[]');
-    const idx = list.findIndex(b => b.id === id);
-    if (idx >= 0) {
-      list[idx] = { ...list[idx], active: !list[idx].active };
-      localStorage.setItem(budgetsKey(), JSON.stringify(list));
-      this.budgets.update(bl => bl.map(b => b.id === id ? list[idx] : b));
-    }
+    try {
+      await firstValueFrom(
+        this.http.patch(`${environment.apiUrl}/api/budgets/${id}/toggle`, {})
+      );
+      await this.loadBudgets();
+    } catch {}
   }
 
   async deleteBudget(id: string) {
-    const list: Budget[] = JSON.parse(localStorage.getItem(budgetsKey()) ?? '[]');
-    const updated = list.filter(b => b.id !== id);
-    localStorage.setItem(budgetsKey(), JSON.stringify(updated));
-    this.budgets.update(bl => bl.filter(b => b.id !== id));
+    try {
+      await firstValueFrom(
+        this.http.delete(`${environment.apiUrl}/api/budgets/${id}`)
+      );
+      this.budgets.update(bl => bl.filter(b => b.id !== id));
+    } catch {}
   }
 
   // ── Expenses ──────────────────────────────────────────────
   async addExpense(item: Omit<ExpenseItem, 'id'>) {
-    const newItem: ExpenseItem = {
-      ...item,
-      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    };
-    const list: ExpenseItem[] = JSON.parse(localStorage.getItem(expensesKey()) ?? '[]');
-    list.unshift(newItem);
-    localStorage.setItem(expensesKey(), JSON.stringify(list));
-    this.expenses.update(el => [newItem, ...el]);
-
-    // Update spent on matching active budgets
-    await this._updateBudgetSpent();
+    try {
+      const payload = {
+        icon:          item.icon,
+        description:   item.description,
+        category:      item.category,
+        expenseDate:   this.toIsoDate(item.date),
+        paymentMethod: item.payment,
+        amount:        item.amount,
+      };
+      const data: any = await firstValueFrom(
+        this.http.post<any>(`${environment.apiUrl}/api/expenses`, payload)
+      );
+      const newItem = this.mapExpense(data);
+      this.expenses.update(el => [newItem, ...el]);
+      await this.loadBudgets();
+    } catch {}
   }
 
   async deleteExpense(id: string) {
-    const list: ExpenseItem[] = JSON.parse(localStorage.getItem(expensesKey()) ?? '[]');
-    const updated = list.filter(e => e.id !== id);
-    localStorage.setItem(expensesKey(), JSON.stringify(updated));
-    this.expenses.update(el => el.filter(e => e.id !== id));
-    await this._updateBudgetSpent();
+    try {
+      await firstValueFrom(
+        this.http.delete(`${environment.apiUrl}/api/expenses/${id}`)
+      );
+      this.expenses.update(el => el.filter(e => e.id !== id));
+      await this.loadBudgets();
+    } catch {}
   }
 
-  // Recalculate spent for all budgets based on current expenses
-  private async _updateBudgetSpent() {
-    const expenses: ExpenseItem[] = JSON.parse(localStorage.getItem(expensesKey()) ?? '[]');
-    const budgets: Budget[]       = JSON.parse(localStorage.getItem(budgetsKey()) ?? '[]');
+  // ── Mappers ───────────────────────────────────────────────
+  private mapBudget(b: any): Budget {
+    return {
+      id:       String(b.id),
+      icon:     b.icon ?? '💸',
+      category: b.category,
+      type:     b.type,
+      period:   b.periodLabel ?? '',
+      limit:    b.budgetLimit,
+      spent:    b.spent ?? 0,
+      status:   b.status ?? 'On Track',
+      active:   b.isActive ?? true,
+    };
+  }
 
-    const now    = new Date();
-    const month  = now.toLocaleString('default', { month: 'short' });
-    const year   = String(now.getFullYear());
+  private mapExpense(e: any): ExpenseItem {
+    return {
+      id:          String(e.id),
+      icon:        e.icon ?? '💸',
+      description: e.description,
+      category:    e.category,
+      date:        this.formatDate(e.expenseDate),
+      payment:     e.paymentMethod ?? 'Cash',
+      amount:      e.amount,
+    };
+  }
 
-    const dayOfWeek = now.getDay(); // 0=Sun
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - dayOfWeek);
-    weekStart.setHours(0, 0, 0, 0);
-
-    const updated = budgets.map(b => {
-      let spent = 0;
-      const catExpenses = expenses.filter(
-        e => e.category.toLowerCase() === b.category.toLowerCase()
-      );
-      if (b.type === 'monthly') {
-        spent = catExpenses
-          .filter(e => e.date.includes(month) && e.date.includes(year))
-          .reduce((s, e) => s + e.amount, 0);
-      } else {
-        spent = catExpenses
-          .filter(e => new Date(e.date) >= weekStart)
-          .reduce((s, e) => s + e.amount, 0);
+  // "14 Apr 2026" or ISO → "2026-04-14"
+  private toIsoDate(dateStr: string): string {
+    try {
+      const months: Record<string, string> = {
+        Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06',
+        Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12',
+      };
+      const parts = dateStr.trim().split(/[\s/\-]/);
+      if (parts.length === 3 && isNaN(Number(parts[1]))) {
+        // "14 Apr 2026"
+        const day   = parts[0].padStart(2, '0');
+        const month = months[parts[1]] ?? '01';
+        const year  = parts[2];
+        return `${year}-${month}-${day}`;
       }
-      return { ...b, spent, status: computeStatus(spent, b.limit) };
-    });
+      // Already ISO or en-CA format "2026-04-14"
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toISOString().split('T')[0];
+    } catch {
+      return new Date().toISOString().split('T')[0];
+    }
+  }
 
-    localStorage.setItem(budgetsKey(), JSON.stringify(updated));
-    this.budgets.set(updated);
+  // [2026,4,14] or "2026-04-14" → "14 Apr 2026"
+  private formatDate(expenseDate: any): string {
+    try {
+      let d: Date;
+      if (Array.isArray(expenseDate)) {
+        d = new Date(expenseDate[0], expenseDate[1] - 1, expenseDate[2]);
+      } else {
+        d = new Date(expenseDate + 'T00:00:00');
+      }
+      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch {
+      return '';
+    }
   }
 
   // ── Computed helpers ──────────────────────────────────────
