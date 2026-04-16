@@ -53,6 +53,7 @@
           <th>Date</th>
           <th>Payment</th>
           <th>Amount</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -73,6 +74,10 @@
             <td>{{ e.date }}</td>
             <td>{{ e.payment }}</td>
             <td class="exp-amount">-₹{{ e.amount.toLocaleString() }}</td>
+            <td class="exp-actions">
+              <button class="action-btn edit-btn" (click)="openEditModal(e)" title="Edit">✏️</button>
+              <button class="action-btn delete-btn" (click)="deleteExpense(e)" title="Delete">🗑️</button>
+            </td>
           </tr>
         }
       </tbody>
@@ -85,7 +90,7 @@
   <div class="modal-backdrop" (click)="closeModal()">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>Add Expense</h2>
+        <h2>{{ editMode() ? 'Edit Expense' : 'Add Expense' }}</h2>
         <button class="modal-close" (click)="closeModal()">✕</button>
       </div>
 
@@ -197,8 +202,10 @@
         </div>
 
         <div class="modal-actions">
-          <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary">Add Expense</button>
+          <button type="button" class="btn btn-outline" (click)="closeModal()" [disabled]="saving()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="saving()">
+            {{ saving() ? 'Saving...' : editMode() ? 'Save Changes' : 'Add Expense' }}
+          </button>
         </div>
       </form>
     </div>

@@ -1,3 +1,21 @@
+.exp-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.action-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 15px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background 0.15s;
+
+  &:hover { background: #f3f4f6; }
+}
+
 .budget-type-toggle {
   display: flex;
   gap: 10px;

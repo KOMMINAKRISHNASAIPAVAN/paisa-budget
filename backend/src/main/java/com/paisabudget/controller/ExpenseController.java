@@ -36,6 +36,13 @@ public class ExpenseController {
         return ResponseEntity.status(HttpStatus.CREATED).body(expenseService.addExpense(userId(u), req));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Expense> update(@AuthenticationPrincipal UserDetails u,
+                                          @PathVariable Long id,
+                                          @Valid @RequestBody ExpenseRequest req) {
+        return ResponseEntity.ok(expenseService.updateExpense(userId(u), id, req));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@AuthenticationPrincipal UserDetails u, @PathVariable Long id) {
         expenseService.deleteExpense(userId(u), id);
