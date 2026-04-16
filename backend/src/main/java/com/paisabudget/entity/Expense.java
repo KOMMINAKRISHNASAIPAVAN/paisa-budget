@@ -33,6 +33,10 @@ public class Expense {
     @Column(name = "payment_method", length = 20)
     private String paymentMethod = "Cash";
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "budget_type", length = 10)
+    private Budget.BudgetType budgetType = Budget.BudgetType.monthly;
+
     @Column(name = "expense_date", nullable = false)
     private LocalDate expenseDate;
 
@@ -61,6 +65,9 @@ public class Expense {
 
     public String getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+
+    public Budget.BudgetType getBudgetType() { return budgetType; }
+    public void setBudgetType(Budget.BudgetType budgetType) { this.budgetType = budgetType; }
 
     public LocalDate getExpenseDate() { return expenseDate; }
     public void setExpenseDate(LocalDate expenseDate) { this.expenseDate = expenseDate; }

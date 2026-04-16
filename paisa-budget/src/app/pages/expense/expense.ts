@@ -23,6 +23,7 @@ export class Expense {
     amount:      null as number | null,
     payment:     'UPI',
     date:        new Date().toLocaleDateString('en-CA'),
+    budgetType:  'monthly' as 'monthly' | 'weekly',
   };
 
   categories = ['Food', 'Transport', 'Shopping', 'Health', 'Entertainment',
@@ -55,6 +56,7 @@ export class Expense {
       icon: '🛒', description: '', category: 'Food',
       amount: null, payment: 'UPI',
       date: new Date().toLocaleDateString('en-CA'),
+      budgetType: 'monthly',
     };
     this.formError.set('');
     this.showModal.set(true);
@@ -80,6 +82,7 @@ export class Expense {
       date:        this.formatDate(this.form.date),
       payment:     this.form.payment,
       amount:      this.form.amount,
+      budgetType:  this.form.budgetType,
     };
 
     this.data.addExpense(newExpense);

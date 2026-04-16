@@ -49,6 +49,7 @@
         <tr>
           <th>Description</th>
           <th>Category</th>
+          <th>Budget</th>
           <th>Date</th>
           <th>Payment</th>
           <th>Amount</th>
@@ -64,6 +65,11 @@
               </div>
             </td>
             <td><span class="badge badge-blue">{{ e.category }}</span></td>
+            <td>
+              <span class="badge" [class]="e.budgetType === 'weekly' ? 'badge-purple' : 'badge-green'">
+                {{ e.budgetType === 'weekly' ? '📆 Weekly' : '📅 Monthly' }}
+              </span>
+            </td>
             <td>{{ e.date }}</td>
             <td>{{ e.payment }}</td>
             <td class="exp-amount">-₹{{ e.amount.toLocaleString() }}</td>
@@ -151,6 +157,29 @@
               [(ngModel)]="form.date"
               name="date"
             />
+          </div>
+
+          <!-- Budget Type -->
+          <div class="modal-field full">
+            <label class="modal-label">Charge to Budget</label>
+            <div class="budget-type-toggle">
+              <button
+                type="button"
+                class="budget-type-btn"
+                [class.selected]="form.budgetType === 'monthly'"
+                (click)="form.budgetType = 'monthly'"
+              >
+                📅 Monthly
+              </button>
+              <button
+                type="button"
+                class="budget-type-btn"
+                [class.selected]="form.budgetType === 'weekly'"
+                (click)="form.budgetType = 'weekly'"
+              >
+                📆 Weekly
+              </button>
+            </div>
           </div>
 
           <!-- Preview icon -->

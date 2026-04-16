@@ -14,6 +14,8 @@ public class BudgetRequest {
 
     private String periodLabel;
 
+    private Double totalBudget;
+
     @NotNull(message = "Budget limit is required")
     @Positive(message = "Budget limit must be positive")
     private Double budgetLimit;
@@ -31,6 +33,9 @@ public class BudgetRequest {
 
     public String getPeriodLabel() { return periodLabel; }
     public void setPeriodLabel(String periodLabel) { this.periodLabel = periodLabel; }
+
+    public Double getTotalBudget() { return totalBudget; }
+    public void setTotalBudget(Double totalBudget) { this.totalBudget = totalBudget; }
 
     public Double getBudgetLimit() { return budgetLimit; }
     public void setBudgetLimit(Double budgetLimit) { this.budgetLimit = budgetLimit; }

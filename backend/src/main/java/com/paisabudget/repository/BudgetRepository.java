@@ -31,6 +31,8 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
         WHERE b.user.id = :uid
           AND b.isActive = true
           AND LOWER(b.category) = LOWER(:cat)
+          AND b.type = :type
         """)
-    void addSpent(@Param("uid") Long userId, @Param("cat") String category, @Param("amt") Double amount);
+    void addSpent(@Param("uid") Long userId, @Param("cat") String category,
+                  @Param("amt") Double amount, @Param("type") Budget.BudgetType type);
 }
