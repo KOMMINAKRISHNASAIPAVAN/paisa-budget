@@ -1,43 +1,64 @@
 <div class="page-header">
   <h1>Daily Tracker</h1>
-  <p>Log your daily spending freely — no budget needed. See your monthly total at a glance.</p>
+  <p>Log your daily spending and income freely — no budget needed.</p>
 </div>
 
-<!-- ── Quick stats ── -->
+<!-- ── Quick stats (2 cards) ── -->
 <div class="daily-stats">
   <div class="ds-card">
     <div class="ds-icon">📅</div>
     <div>
-      <div class="ds-val">₹{{ todayTotal().toLocaleString() }}</div>
+      <div class="ds-val">₹{{ todaySpent().toLocaleString() }}</div>
       <div class="ds-lbl">Today's Spend</div>
     </div>
   </div>
-  <div class="ds-card">
-    <div class="ds-icon">🗓️</div>
+  <div class="ds-card income-card">
+    <div class="ds-icon">💰</div>
     <div>
-      <div class="ds-val">₹{{ monthTotal().toLocaleString() }}</div>
-      <div class="ds-lbl">{{ selectedMonthMeta()?.label ?? 'Month' }} Total</div>
+      <div class="ds-val income">₹{{ monthIncome().toLocaleString() }}</div>
+      <div class="ds-lbl">{{ selectedMonthMeta()?.label }} Income</div>
     </div>
   </div>
   <div class="ds-card">
-    <div class="ds-icon">📊</div>
+    <div class="ds-icon">💸</div>
     <div>
-      <div class="ds-val">₹{{ monthAvgPerDay().toLocaleString() }}</div>
-      <div class="ds-lbl">Avg / Day</div>
+      <div class="ds-val spent">₹{{ monthSpent().toLocaleString() }}</div>
+      <div class="ds-lbl">{{ selectedMonthMeta()?.label }} Spent</div>
     </div>
   </div>
-  <div class="ds-card">
-    <div class="ds-icon">🔢</div>
+  <div class="ds-card" [class.balance-positive]="monthBalance() >= 0" [class.balance-negative]="monthBalance() < 0">
+    <div class="ds-icon">{{ monthBalance() >= 0 ? '✅' : '⚠️' }}</div>
     <div>
-      <div class="ds-val">{{ monthEntries().length }}</div>
-      <div class="ds-lbl">Entries This Month</div>
+      <div class="ds-val" [class.income]="monthBalance() >= 0" [class.spent]="monthBalance() < 0">
+        {{ monthBalance() < 0 ? '-' : '' }}₹{{ Math.abs(monthBalance()).toLocaleString() }}
+      </div>
+      <div class="ds-lbl">Balance</div>
     </div>
   </div>
 </div>
 
 <!-- ── Add entry form ── -->
 <div class="card add-entry-card">
-  <h3 class="add-entry-title">➕ Add Today's Spend</h3>
+
+  <!-- Income / Expense toggle -->
+  <div class="entry-type-toggle">
+    <button
+      type="button"
+      class="type-btn expense-btn"
+      [class.selected]="form.entryType === 'EXPENSE'"
+      (click)="form.entryType = 'EXPENSE'"
+    >
+      💸 Expense
+    </button>
+    <button
+      type="button"
+      class="type-btn income-btn"
+      [class.selected]="form.entryType === 'INCOME'"
+      (click)="form.entryType = 'INCOME'"
+    >
+      💰 Income
+    </button>
+  </div>
 
   @if (formError()) {
     <div class="form-error">⚠️ {{ formError() }}</div>
@@ -45,11 +66,13 @@
 
   <div class="add-entry-grid">
     <div class="entry-field grow">
-      <label class="entry-label">What did you spend on?</label>
+      <label class="entry-label">
+        {{ form.entryType === 'INCOME' ? 'Income source / description' : 'What did you spend on?' }}
+      </label>
       <input
         class="entry-input"
         type="text"
-        placeholder="e.g. Tea, Auto, Snacks…"
+        [placeholder]="form.entryType === 'INCOME' ? 'e.g. Salary, Freelance, Gift…' : 'e.g. Tea, Auto, Snacks…'"
         [(ngModel)]="form.description"
         name="description"
         (keyup.enter)="addEntry()"
@@ -58,7 +81,7 @@
 
     <div class="entry-field">
       <label class="entry-label">Amount (₹)</label>
-      <div class="entry-amt-wrap">
+      <div class="entry-amt-wrap" [class.income-border]="form.entryType === 'INCOME'">
         <span class="entry-prefix">₹</span>
         <input
           class="entry-input"
@@ -95,8 +118,14 @@
     </div>
 
     <div class="entry-field entry-submit">
-      <button class="btn btn-primary add-btn" (click)="addEntry()" [disabled]="saving()">
-        {{ saving() ? 'Saving…' : '+ Add' }}
+      <button
+        class="btn add-btn"
+        [class.btn-primary]="form.entryType === 'EXPENSE'"
+        [class.btn-income]="form.entryType === 'INCOME'"
+        (click)="addEntry()"
+        [disabled]="saving()"
+      >
+        {{ saving() ? 'Saving…' : (form.entryType === 'INCOME' ? '+ Add Income' : '+ Add Spend') }}
       </button>
     </div>
   </div>
@@ -105,7 +134,7 @@
 <!-- ── Month filter + history ── -->
 <div class="card">
   <div class="history-header">
-    <h3>Spending History</h3>
+    <h3>History</h3>
     <select class="month-select" [ngModel]="selectedMonthVal()" (ngModelChange)="selectedMonthVal.set($event)">
       @for (m of availableMonths(); track m.value) {
         <option [value]="m.value">{{ m.label }}</option>
@@ -116,13 +145,27 @@
   @if (monthEntries().length === 0) {
     <div class="empty-state">
       <div class="empty-icon">📭</div>
-      <p>No entries for this month yet.<br>Add your first spend above.</p>
+      <p>No entries for this month yet.<br>Add your first income or spend above.</p>
     </div>
   } @else {
-    <!-- Monthly total banner -->
-    <div class="month-banner">
-      <span class="month-banner-label">{{ selectedMonthMeta()?.label }} Total</span>
-      <span class="month-banner-total">₹{{ monthTotal().toLocaleString() }}</span>
+    <!-- Income vs Spent summary bar -->
+    <div class="month-summary-banner">
+      <div class="msb-item">
+        <span class="msb-label">Income</span>
+        <span class="msb-val income">₹{{ monthIncome().toLocaleString() }}</span>
+      </div>
+      <div class="msb-divider"></div>
+      <div class="msb-item">
+        <span class="msb-label">Spent</span>
+        <span class="msb-val spent">₹{{ monthSpent().toLocaleString() }}</span>
+      </div>
+      <div class="msb-divider"></div>
+      <div class="msb-item">
+        <span class="msb-label">Balance</span>
+        <span class="msb-val" [class.income]="monthBalance() >= 0" [class.spent]="monthBalance() < 0">
+          {{ monthBalance() < 0 ? '-' : '+' }}₹{{ Math.abs(monthBalance()).toLocaleString() }}
+        </span>
+      </div>
     </div>
 
     <!-- Day groups -->
@@ -130,12 +173,19 @@
       <div class="day-group">
         <div class="day-header">
           <span class="day-date">{{ group.date }}</span>
-          <span class="day-total">₹{{ group.dayTotal.toLocaleString() }}</span>
+          <div class="day-totals">
+            @if (group.dayIncome > 0) {
+              <span class="day-income">+₹{{ group.dayIncome.toLocaleString() }}</span>
+            }
+            @if (group.daySpent > 0) {
+              <span class="day-spent">-₹{{ group.daySpent.toLocaleString() }}</span>
+            }
+          </div>
         </div>
 
         @for (entry of group.items; track entry.id) {
-          <div class="entry-row">
-            <div class="entry-dot"></div>
+          <div class="entry-row" [class.income-row]="entry.entryType === 'INCOME'">
+            <div class="entry-dot" [class.income-dot]="entry.entryType === 'INCOME'"></div>
             <div class="entry-body">
               <div class="entry-desc">{{ entry.description }}</div>
               @if (entry.note) {
@@ -143,7 +193,9 @@
               }
             </div>
             <div class="entry-right">
-              <span class="entry-amount">-₹{{ entry.amount.toLocaleString() }}</span>
+              <span class="entry-amount" [class.income]="entry.entryType === 'INCOME'" [class.spent]="entry.entryType === 'EXPENSE'">
+                {{ entry.entryType === 'INCOME' ? '+' : '-' }}₹{{ entry.amount.toLocaleString() }}
+              </span>
               <button class="entry-delete" (click)="deleteEntry(entry.id)" title="Delete">🗑️</button>
             </div>
           </div>
@@ -151,10 +203,12 @@
       </div>
     }
 
-    <!-- Bottom month summary -->
-    <div class="month-summary-bar">
-      <span>{{ monthEntries().length }} entries &nbsp;·&nbsp; Avg ₹{{ monthAvgPerDay().toLocaleString() }}/day</span>
-      <strong>₹{{ monthTotal().toLocaleString() }}</strong>
+    <!-- Bottom bar -->
+    <div class="bottom-bar">
+      <span>{{ monthEntries().length }} entries this month</span>
+      <span [class.income]="monthBalance() >= 0" [class.spent]="monthBalance() < 0">
+        Balance: {{ monthBalance() < 0 ? '-' : '+' }}₹{{ Math.abs(monthBalance()).toLocaleString() }}
+      </span>
     </div>
   }
 </div>
