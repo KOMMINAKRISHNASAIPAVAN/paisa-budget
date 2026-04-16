@@ -118,6 +118,29 @@ export class DataService {
     } catch {}
   }
 
+  async updateExpense(id: string, item: Omit<ExpenseItem, 'id'>): Promise<{ ok: boolean; error?: string }> {
+    try {
+      const payload = {
+        icon:          item.icon,
+        description:   item.description,
+        category:      item.category,
+        expenseDate:   this.toIsoDate(item.date),
+        paymentMethod: item.payment,
+        amount:        item.amount,
+        budgetType:    item.budgetType,
+      };
+      const data: any = await firstValueFrom(
+        this.http.put<any>(`${environment.apiUrl}/api/expenses/${id}`, payload)
+      );
+      const updated = this.mapExpense(data);
+      this.expenses.update(el => el.map(e => e.id === id ? updated : e));
+      await this.loadBudgets();
+      return { ok: true };
+    } catch (err: any) {
+      return { ok: false, error: err?.error?.message ?? 'Failed to update expense.' };
+    }
+  }
+
   async deleteExpense(id: string) {
     try {
       await firstValueFrom(

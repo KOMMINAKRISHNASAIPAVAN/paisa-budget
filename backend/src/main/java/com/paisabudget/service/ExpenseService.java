@@ -51,9 +51,42 @@ public class ExpenseService {
     }
 
     @Transactional
+    public Expense updateExpense(Long userId, Long expenseId, ExpenseRequest req) {
+        Expense expense = expenseRepository.findByIdAndUserId(expenseId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Expense not found"));
+
+        // Revert old budget spent
+        if (expense.getBudgetType() != null) {
+            budgetRepository.subtractSpent(userId, expense.getCategory(), expense.getAmount(), expense.getBudgetType());
+        }
+
+        // Update fields
+        expense.setIcon(req.getIcon());
+        expense.setDescription(req.getDescription());
+        expense.setCategory(req.getCategory());
+        expense.setAmount(req.getAmount());
+        expense.setPaymentMethod(req.getPaymentMethod());
+        expense.setExpenseDate(req.getExpenseDate());
+
+        Budget.BudgetType newType = Budget.BudgetType.valueOf(req.getBudgetType());
+        expense.setBudgetType(newType);
+
+        Expense saved = expenseRepository.save(expense);
+
+        // Apply new budget spent
+        budgetRepository.addSpent(userId, req.getCategory(), req.getAmount(), newType);
+        return saved;
+    }
+
+    @Transactional
     public void deleteExpense(Long userId, Long expenseId) {
         Expense expense = expenseRepository.findByIdAndUserId(expenseId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Expense not found"));
+
+        // Revert budget spent before deleting
+        if (expense.getBudgetType() != null) {
+            budgetRepository.subtractSpent(userId, expense.getCategory(), expense.getAmount(), expense.getBudgetType());
+        }
         expenseRepository.delete(expense);
     }
 }
