@@ -40,17 +40,18 @@ export class Budgets {
     { icon: '🎬', category: 'Movies',    amount: null },
     { icon: '🏠', category: 'Rent',      amount: null },
     { icon: '📈', category: 'Invest',    amount: null },
-    { icon: '💸', category: 'Other',     amount: null },
   ];
 
-  allocations = signal<Allocation[]>(this.fixedCategories.map(c => ({ ...c })));
+  allocations       = signal<Allocation[]>(this.fixedCategories.map(c => ({ ...c })));
+  customAllocations = signal<Allocation[]>([]);
 
   effectiveBudget = computed(() => {
     const total = this.totalBudget() ?? 0;
     return this.periodType() === 'weekly' ? Math.round(total / 4) : total;
   });
 
-  totalAllocated = computed(() => this.allocations().reduce((s, a) => s + (a.amount ?? 0), 0));
+  allAllocations = computed(() => [...this.allocations(), ...this.customAllocations()]);
+  totalAllocated = computed(() => this.allAllocations().reduce((s, a) => s + (a.amount ?? 0), 0));
   remaining      = computed(() => this.effectiveBudget() - this.totalAllocated());
   remainingPct   = computed(() => {
     const e = this.effectiveBudget();
@@ -82,9 +83,27 @@ export class Budgets {
     this.totalBudget.set(null);
     this.periodType.set('monthly');
     this.allocations.set(this.fixedCategories.map(c => ({ ...c, amount: null })));
+    this.customAllocations.set([]);
     this.formError.set('');
     this.step.set(1);
     this.showModal.set(true);
+  }
+
+  addCustomCategory() {
+    this.customAllocations.update(list => [
+      ...list,
+      { icon: '✏️', category: 'Other', amount: null, customName: '' },
+    ]);
+  }
+
+  removeCustomAllocation(index: number) {
+    this.customAllocations.update(list => list.filter((_, i) => i !== index));
+  }
+
+  updateCustomAllocation(index: number, field: 'amount' | 'customName', value: any) {
+    this.customAllocations.update(list =>
+      list.map((a, i) => i === index ? { ...a, [field]: value } : a)
+    );
   }
 
   closeModal() { this.showModal.set(false); }
@@ -111,22 +130,17 @@ export class Budgets {
     this.allocations.update(list => list.map((a, i) => i === index ? { ...a, amount: value } : a));
   }
 
-  updateCustomName(index: number, name: string) {
-    this.allocations.update(list => list.map((a, i) => i === index ? { ...a, customName: name } : a));
-  }
-
-
   saving = signal(false);
 
   async submitBudget() {
     this.formError.set('');
-    const filled = this.allocations().filter(a => a.amount && a.amount > 0);
-    if (filled.length === 0) { this.formError.set('Please enter a limit for at least one category.'); return; }
 
-    const otherRow = filled.find(a => a.category === 'Other');
-    if (otherRow && !otherRow.customName?.trim()) {
-      this.formError.set('Please enter a name for your "Other" category.'); return;
-    }
+    // Validate custom allocations: each must have a name
+    const badCustom = this.customAllocations().find(a => (a.amount && a.amount > 0) && !a.customName?.trim());
+    if (badCustom) { this.formError.set('Please enter a name for all custom categories.'); return; }
+
+    const filled = this.allAllocations().filter(a => a.amount && a.amount > 0);
+    if (filled.length === 0) { this.formError.set('Please enter a limit for at least one category.'); return; }
     if (this.remaining() < 0) { this.formError.set('Total allocated exceeds your budget. Please adjust.'); return; }
 
     const now    = new Date();
@@ -137,7 +151,7 @@ export class Budgets {
     const newBudgets: Budget[] = filled.map(a => ({
       id:          crypto.randomUUID(),
       icon:        a.icon,
-      category:    a.category === 'Other' ? a.customName!.trim() : a.category,
+      category:    a.category === 'Other' && a.customName?.trim() ? a.customName.trim() : a.category,
       type:        this.periodType(),
       period,
       spent:       0,

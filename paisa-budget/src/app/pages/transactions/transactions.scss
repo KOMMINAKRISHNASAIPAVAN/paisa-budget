@@ -1,3 +1,55 @@
+.budget-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+
+  @media (max-width: 700px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 400px) { grid-template-columns: 1fr; }
+}
+
+.summary-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border: 1.5px solid #f0f0f5;
+
+  .summary-icon { font-size: 26px; flex-shrink: 0; }
+
+  .summary-label {
+    font-size: 12px;
+    color: #9ca3af;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .summary-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1f3c;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &.spent    { color: #ef4444; }
+    &.positive { color: #10b981; }
+    &.negative { color: #ef4444; }
+  }
+}
+
+.over-badge {
+  font-size: 11px;
+  font-weight: 600;
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
 .tx-controls {
   display: flex;
   align-items: center;

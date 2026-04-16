@@ -1,0 +1,160 @@
+<div class="page-header">
+  <h1>Daily Tracker</h1>
+  <p>Log your daily spending freely — no budget needed. See your monthly total at a glance.</p>
+</div>
+
+<!-- ── Quick stats ── -->
+<div class="daily-stats">
+  <div class="ds-card">
+    <div class="ds-icon">📅</div>
+    <div>
+      <div class="ds-val">₹{{ todayTotal().toLocaleString() }}</div>
+      <div class="ds-lbl">Today's Spend</div>
+    </div>
+  </div>
+  <div class="ds-card">
+    <div class="ds-icon">🗓️</div>
+    <div>
+      <div class="ds-val">₹{{ monthTotal().toLocaleString() }}</div>
+      <div class="ds-lbl">{{ selectedMonthMeta()?.label ?? 'Month' }} Total</div>
+    </div>
+  </div>
+  <div class="ds-card">
+    <div class="ds-icon">📊</div>
+    <div>
+      <div class="ds-val">₹{{ monthAvgPerDay().toLocaleString() }}</div>
+      <div class="ds-lbl">Avg / Day</div>
+    </div>
+  </div>
+  <div class="ds-card">
+    <div class="ds-icon">🔢</div>
+    <div>
+      <div class="ds-val">{{ monthEntries().length }}</div>
+      <div class="ds-lbl">Entries This Month</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Add entry form ── -->
+<div class="card add-entry-card">
+  <h3 class="add-entry-title">➕ Add Today's Spend</h3>
+
+  @if (formError()) {
+    <div class="form-error">⚠️ {{ formError() }}</div>
+  }
+
+  <div class="add-entry-grid">
+    <div class="entry-field grow">
+      <label class="entry-label">What did you spend on?</label>
+      <input
+        class="entry-input"
+        type="text"
+        placeholder="e.g. Tea, Auto, Snacks…"
+        [(ngModel)]="form.description"
+        name="description"
+        (keyup.enter)="addEntry()"
+      />
+    </div>
+
+    <div class="entry-field">
+      <label class="entry-label">Amount (₹)</label>
+      <div class="entry-amt-wrap">
+        <span class="entry-prefix">₹</span>
+        <input
+          class="entry-input"
+          type="number"
+          placeholder="0"
+          min="1"
+          [(ngModel)]="form.amount"
+          name="amount"
+          (keyup.enter)="addEntry()"
+        />
+      </div>
+    </div>
+
+    <div class="entry-field">
+      <label class="entry-label">Date</label>
+      <input
+        class="entry-input"
+        type="date"
+        [(ngModel)]="form.entryDate"
+        name="entryDate"
+      />
+    </div>
+
+    <div class="entry-field grow">
+      <label class="entry-label">Note <span class="optional">(optional)</span></label>
+      <input
+        class="entry-input"
+        type="text"
+        placeholder="Any extra detail…"
+        [(ngModel)]="form.note"
+        name="note"
+        (keyup.enter)="addEntry()"
+      />
+    </div>
+
+    <div class="entry-field entry-submit">
+      <button class="btn btn-primary add-btn" (click)="addEntry()" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : '+ Add' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Month filter + history ── -->
+<div class="card">
+  <div class="history-header">
+    <h3>Spending History</h3>
+    <select class="month-select" [ngModel]="selectedMonthVal()" (ngModelChange)="selectedMonthVal.set($event)">
+      @for (m of availableMonths(); track m.value) {
+        <option [value]="m.value">{{ m.label }}</option>
+      }
+    </select>
+  </div>
+
+  @if (monthEntries().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <p>No entries for this month yet.<br>Add your first spend above.</p>
+    </div>
+  } @else {
+    <!-- Monthly total banner -->
+    <div class="month-banner">
+      <span class="month-banner-label">{{ selectedMonthMeta()?.label }} Total</span>
+      <span class="month-banner-total">₹{{ monthTotal().toLocaleString() }}</span>
+    </div>
+
+    <!-- Day groups -->
+    @for (group of grouped(); track group.date) {
+      <div class="day-group">
+        <div class="day-header">
+          <span class="day-date">{{ group.date }}</span>
+          <span class="day-total">₹{{ group.dayTotal.toLocaleString() }}</span>
+        </div>
+
+        @for (entry of group.items; track entry.id) {
+          <div class="entry-row">
+            <div class="entry-dot"></div>
+            <div class="entry-body">
+              <div class="entry-desc">{{ entry.description }}</div>
+              @if (entry.note) {
+                <div class="entry-note">{{ entry.note }}</div>
+              }
+            </div>
+            <div class="entry-right">
+              <span class="entry-amount">-₹{{ entry.amount.toLocaleString() }}</span>
+              <button class="entry-delete" (click)="deleteEntry(entry.id)" title="Delete">🗑️</button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Bottom month summary -->
+    <div class="month-summary-bar">
+      <span>{{ monthEntries().length }} entries &nbsp;·&nbsp; Avg ₹{{ monthAvgPerDay().toLocaleString() }}/day</span>
+      <strong>₹{{ monthTotal().toLocaleString() }}</strong>
+    </div>
+  }
+</div>

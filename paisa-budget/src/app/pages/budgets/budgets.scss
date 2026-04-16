@@ -639,3 +639,38 @@
   padding: 7px 14px;
   font-size: 12px;
 }
+
+/* ── Add Custom Category button ─────────────────────────── */
+.add-custom-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 9px 18px;
+  border: 1.5px dashed #a5b4fc;
+  border-radius: 10px;
+  background: #f5f7ff;
+  color: #4f6ef7;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+  transition: all 0.18s;
+
+  .add-custom-icon { font-size: 17px; line-height: 1; }
+
+  &:hover {
+    background: #eef2ff;
+    border-color: #4f6ef7;
+  }
+}
+
+/* Custom row highlight */
+.cat-alloc-custom-row {
+  background: #fafbff;
+  border-radius: 8px;
+  padding-left: 6px;
+  padding-right: 4px;
+  margin-bottom: 2px;
+}
