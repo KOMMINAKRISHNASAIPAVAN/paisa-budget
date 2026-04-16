@@ -37,6 +37,7 @@ public class DailyEntryService {
         entry.setDescription(req.getDescription());
         entry.setAmount(req.getAmount());
         entry.setNote(req.getNote());
+        entry.setEntryType(req.getEntryType() != null ? req.getEntryType() : com.paisabudget.entity.DailyEntry.EntryType.EXPENSE);
         entry.setEntryDate(req.getEntryDate() != null ? req.getEntryDate() : LocalDate.now());
 
         return repo.save(entry);

@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 @Table(name = "daily_entries")
 public class DailyEntry {
 
+    public enum EntryType { EXPENSE, INCOME }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,6 +28,10 @@ public class DailyEntry {
 
     @Column(length = 500)
     private String note;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "entry_type", length = 10)
+    private EntryType entryType = EntryType.EXPENSE;
 
     @Column(name = "entry_date", nullable = false)
     private LocalDate entryDate;
@@ -49,6 +55,9 @@ public class DailyEntry {
 
     public String getNote() { return note; }
     public void setNote(String note) { this.note = note; }
+
+    public EntryType getEntryType() { return entryType; }
+    public void setEntryType(EntryType entryType) { this.entryType = entryType; }
 
     public LocalDate getEntryDate() { return entryDate; }
     public void setEntryDate(LocalDate entryDate) { this.entryDate = entryDate; }

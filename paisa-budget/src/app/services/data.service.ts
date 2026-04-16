@@ -21,6 +21,7 @@ export interface DailyEntry {
   description: string;
   amount: number;
   note: string;
+  entryType: 'INCOME' | 'EXPENSE';
   entryDate: string;   // "14 Apr 2026"
 }
 
@@ -77,13 +78,14 @@ export class DataService {
   }
 
   // ── Daily Entries ─────────────────────────────────────────
-  async addDailyEntry(item: { description: string; amount: number; note: string; entryDate: string }): Promise<{ ok: boolean; error?: string }> {
+  async addDailyEntry(item: { description: string; amount: number; note: string; entryType: 'INCOME' | 'EXPENSE'; entryDate: string }): Promise<{ ok: boolean; error?: string }> {
     try {
       const data: any = await firstValueFrom(
         this.http.post<any>(`${environment.apiUrl}/api/daily`, {
           description: item.description,
           amount:      item.amount,
           note:        item.note,
+          entryType:   item.entryType,
           entryDate:   item.entryDate,
         })
       );
@@ -107,6 +109,7 @@ export class DataService {
       description: d.description,
       amount:      d.amount,
       note:        d.note ?? '',
+      entryType:   d.entryType ?? 'EXPENSE',
       entryDate:   this.formatDate(d.entryDate),
     };
   }
