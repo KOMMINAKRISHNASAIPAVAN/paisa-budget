@@ -8,12 +8,8 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 15px;
-  padding: 4px 6px;
   border-radius: 6px;
-  transition: background 0.15s;
-
-  &:hover { background: #f3f4f6; }
+  transition: background 0.15s, opacity 0.15s;
 }
 
 .budget-type-toggle {
@@ -97,12 +93,88 @@
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: #fafbff; }
 
-  // Hide less important columns on mobile
-  @media (max-width: 540px) {
-    th:nth-child(3),
-    td:nth-child(3),
-    th:nth-child(4),
-    td:nth-child(4) { display: none; }
+  @media (max-width: 640px) { display: none; }
+}
+
+// ── Mobile card list ──────────────────────────────────────
+.exp-cards {
+  display: none;
+
+  @media (max-width: 640px) { display: flex; flex-direction: column; gap: 10px; }
+}
+
+.exp-card {
+  border: 1.5px solid #f0f0f5;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #fff;
+
+  .exp-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .exp-card-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+
+    .exp-icon { font-size: 22px; flex-shrink: 0; }
+  }
+
+  .exp-card-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1f3c;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .exp-card-meta {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 2px;
+  }
+
+  .exp-card-amount {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ef4444;
+    flex-shrink: 0;
+  }
+
+  .exp-card-bottom {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .exp-card-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+  }
+}
+
+.action-btn {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 7px;
+
+  &.edit-btn   { background: #eef2ff; color: #4f6ef7; border: 1.5px solid #c7d2fe; }
+  &.delete-btn { background: #fef2f2; color: #ef4444; border: 1.5px solid #fecaca; }
+
+  &:hover {
+    &.edit-btn   { background: #e0e7ff; }
+    &.delete-btn { background: #fee2e2; }
   }
 }
 

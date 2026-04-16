@@ -44,6 +44,7 @@
       <p>No expenses found. Add one using <strong>+ Add Expense</strong>.</p>
     </div>
   } @else {
+    <!-- Desktop table -->
     <table class="exp-table">
       <thead>
         <tr>
@@ -82,6 +83,34 @@
         }
       </tbody>
     </table>
+
+    <!-- Mobile cards -->
+    <div class="exp-cards">
+      @for (e of filteredExpenses(); track e.id) {
+        <div class="exp-card">
+          <div class="exp-card-top">
+            <div class="exp-card-left">
+              <span class="exp-icon">{{ e.icon }}</span>
+              <div>
+                <div class="exp-card-name">{{ e.description }}</div>
+                <div class="exp-card-meta">{{ e.date }} · {{ e.payment }}</div>
+              </div>
+            </div>
+            <div class="exp-card-amount">-₹{{ e.amount.toLocaleString() }}</div>
+          </div>
+          <div class="exp-card-bottom">
+            <span class="badge badge-blue">{{ e.category }}</span>
+            <span class="badge" [class]="e.budgetType === 'weekly' ? 'badge-purple' : 'badge-green'">
+              {{ e.budgetType === 'weekly' ? '📆 Weekly' : '📅 Monthly' }}
+            </span>
+            <div class="exp-card-actions">
+              <button class="action-btn edit-btn" (click)="openEditModal(e)" title="Edit">✏️ Edit</button>
+              <button class="action-btn delete-btn" (click)="deleteExpense(e)" title="Delete">🗑️ Delete</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
   }
 </div>
 
