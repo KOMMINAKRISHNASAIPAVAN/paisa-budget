@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DataService, ExpenseItem } from '../../services/data.service';
+import { DataService, ExpenseItem, DailyEntry } from '../../services/data.service';
 import { AuthService } from '../../services/auth';
 
 const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -38,7 +38,8 @@ export class Profile {
     return Math.max(0, Math.round(((total - this.data.thisMonthTotal()) / total) * 100));
   });
 
-  showHistory = signal(false);
+  showHistory      = signal(false);
+  showDailyHistory = signal(false);
 
   // ── Available months (last 12) ──────────────────────────────
   availableMonths = computed(() => {
@@ -104,5 +105,36 @@ export class Profile {
       map.set(e.date, list);
     }
     return Array.from(map.entries()).map(([date, items]) => ({ date, items }));
+  });
+
+  // ── Daily Tracker history for selected month ────────────────
+  selectedDailyEntries = computed(() => {
+    const [month, year] = this.selectedMonth().split('-');
+    return this.data.dailyEntries().filter((e: DailyEntry) =>
+      e.entryDate.includes(month) && e.entryDate.includes(year)
+    );
+  });
+
+  dailyIncome  = computed(() =>
+    this.selectedDailyEntries().filter(e => e.entryType === 'INCOME').reduce((s, e) => s + e.amount, 0)
+  );
+  dailySpent   = computed(() =>
+    this.selectedDailyEntries().filter(e => e.entryType === 'EXPENSE').reduce((s, e) => s + e.amount, 0)
+  );
+  dailyBalance = computed(() => this.dailyIncome() - this.dailySpent());
+
+  dailyGrouped = computed(() => {
+    const map = new Map<string, DailyEntry[]>();
+    for (const e of this.selectedDailyEntries()) {
+      const list = map.get(e.entryDate) ?? [];
+      list.push(e);
+      map.set(e.entryDate, list);
+    }
+    return Array.from(map.entries()).map(([date, items]) => ({
+      date,
+      items,
+      dayIncome: items.filter(i => i.entryType === 'INCOME').reduce((s, i) => s + i.amount, 0),
+      daySpent:  items.filter(i => i.entryType === 'EXPENSE').reduce((s, i) => s + i.amount, 0),
+    }));
   });
 }

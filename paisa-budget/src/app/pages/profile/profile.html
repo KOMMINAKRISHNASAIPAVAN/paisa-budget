@@ -192,6 +192,91 @@
       }
     </div>
 
+    <!-- ── Daily Tracker History (collapsible) ────────────────── -->
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="history-toggle-row" (click)="showDailyHistory.set(!showDailyHistory())">
+        <div class="history-toggle-left">
+          <span class="history-toggle-icon">📓</span>
+          <div>
+            <div class="history-toggle-title">Daily Tracker History</div>
+            <div class="history-toggle-sub">View your daily income & spending by month</div>
+          </div>
+        </div>
+        <div class="history-toggle-btn" [class.open]="showDailyHistory()">
+          {{ showDailyHistory() ? 'Hide' : 'Show' }}
+          <span class="history-chevron">›</span>
+        </div>
+      </div>
+
+      @if (showDailyHistory()) {
+        <div class="history-body">
+          <div class="history-month-picker">
+            <label style="font-size:12px;font-weight:600;color:#6b7280;">Select Month</label>
+            <select class="form-input history-select"
+                    [ngModel]="selectedMonth()"
+                    (ngModelChange)="selectedMonth.set($event)">
+              @for (m of availableMonths(); track m.value) {
+                <option [value]="m.value">{{ m.label }}</option>
+              }
+            </select>
+          </div>
+
+          @if (selectedDailyEntries().length === 0) {
+            <div class="history-empty">
+              <div class="history-empty-icon">📓</div>
+              <p>No daily entries for this month.</p>
+            </div>
+          } @else {
+            <!-- Summary strip -->
+            <div class="history-summary" style="grid-template-columns: repeat(3,1fr);">
+              <div class="hs-item">
+                <div class="hs-val positive">₹{{ dailyIncome().toLocaleString() }}</div>
+                <div class="hs-lbl">Income</div>
+              </div>
+              <div class="hs-item">
+                <div class="hs-val negative">₹{{ dailySpent().toLocaleString() }}</div>
+                <div class="hs-lbl">Spent</div>
+              </div>
+              <div class="hs-item">
+                <div class="hs-val" [class.positive]="dailyBalance() >= 0" [class.negative]="dailyBalance() < 0">
+                  {{ dailyBalance() < 0 ? '-' : '+' }}₹{{ Math.abs(dailyBalance()).toLocaleString() }}
+                </div>
+                <div class="hs-lbl">Balance</div>
+              </div>
+            </div>
+
+            <!-- Day-wise entries -->
+            <div class="history-section-title">Entries</div>
+            @for (group of dailyGrouped(); track group.date) {
+              <div class="h-date-label">
+                {{ group.date }}
+                @if (group.dayIncome > 0) {
+                  <span class="dl-day-income">+₹{{ group.dayIncome.toLocaleString() }}</span>
+                }
+                @if (group.daySpent > 0) {
+                  <span class="dl-day-spent">-₹{{ group.daySpent.toLocaleString() }}</span>
+                }
+              </div>
+              @for (entry of group.items; track entry.id) {
+                <div class="h-tx-row" [class.dl-income-row]="entry.entryType === 'INCOME'">
+                  <div class="dl-dot" [class.dl-income-dot]="entry.entryType === 'INCOME'"></div>
+                  <div class="h-tx-body">
+                    <div class="h-tx-name">{{ entry.description }}</div>
+                    @if (entry.note) {
+                      <div class="h-tx-sub">{{ entry.note }}</div>
+                    }
+                  </div>
+                  <div [class.h-tx-amt]="entry.entryType === 'EXPENSE'" [class.dl-income-amt]="entry.entryType === 'INCOME'">
+                    {{ entry.entryType === 'INCOME' ? '+' : '-' }}₹{{ entry.amount.toLocaleString() }}
+                  </div>
+                </div>
+              }
+            }
+          }
+        </div>
+      }
+    </div>
+
     <!-- <div style="display: flex; gap: 12px;">
       <button class="btn btn-primary">Save Changes</button>
       <button class="btn btn-outline">Cancel</button>
