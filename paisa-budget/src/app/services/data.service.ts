@@ -16,6 +16,14 @@ export interface Budget {
   active: boolean;
 }
 
+export interface DailyEntry {
+  id: string;
+  description: string;
+  amount: number;
+  note: string;
+  entryDate: string;   // "14 Apr 2026"
+}
+
 export interface ExpenseItem {
   id: string;
   icon: string;
@@ -30,14 +38,15 @@ export interface ExpenseItem {
 @Injectable({ providedIn: 'root' })
 export class DataService {
 
-  budgets  = signal<Budget[]>([]);
-  expenses = signal<ExpenseItem[]>([]);
+  budgets      = signal<Budget[]>([]);
+  expenses     = signal<ExpenseItem[]>([]);
+  dailyEntries = signal<DailyEntry[]>([]);
 
   constructor(private http: HttpClient) {}
 
   // ── Load ──────────────────────────────────────────────────
   async loadAll() {
-    await Promise.all([this.loadBudgets(), this.loadExpenses()]);
+    await Promise.all([this.loadBudgets(), this.loadExpenses(), this.loadDailyEntries()]);
   }
 
   async loadBudgets() {
@@ -56,6 +65,50 @@ export class DataService {
       );
       this.expenses.set(data.map(e => this.mapExpense(e)));
     } catch { this.expenses.set([]); }
+  }
+
+  async loadDailyEntries() {
+    try {
+      const data: any[] = await firstValueFrom(
+        this.http.get<any[]>(`${environment.apiUrl}/api/daily`)
+      );
+      this.dailyEntries.set(data.map(d => this.mapDailyEntry(d)));
+    } catch { this.dailyEntries.set([]); }
+  }
+
+  // ── Daily Entries ─────────────────────────────────────────
+  async addDailyEntry(item: { description: string; amount: number; note: string; entryDate: string }): Promise<{ ok: boolean; error?: string }> {
+    try {
+      const data: any = await firstValueFrom(
+        this.http.post<any>(`${environment.apiUrl}/api/daily`, {
+          description: item.description,
+          amount:      item.amount,
+          note:        item.note,
+          entryDate:   item.entryDate,
+        })
+      );
+      this.dailyEntries.update(list => [this.mapDailyEntry(data), ...list]);
+      return { ok: true };
+    } catch (err: any) {
+      return { ok: false, error: err?.error?.message ?? 'Failed to save entry.' };
+    }
+  }
+
+  async deleteDailyEntry(id: string) {
+    try {
+      await firstValueFrom(this.http.delete(`${environment.apiUrl}/api/daily/${id}`));
+      this.dailyEntries.update(list => list.filter(d => d.id !== id));
+    } catch {}
+  }
+
+  private mapDailyEntry(d: any): DailyEntry {
+    return {
+      id:          String(d.id),
+      description: d.description,
+      amount:      d.amount,
+      note:        d.note ?? '',
+      entryDate:   this.formatDate(d.entryDate),
+    };
   }
 
   // ── Budgets ───────────────────────────────────────────────
@@ -263,5 +316,6 @@ export class DataService {
   clearAll() {
     this.budgets.set([]);
     this.expenses.set([]);
+    this.dailyEntries.set([]);
   }
 }

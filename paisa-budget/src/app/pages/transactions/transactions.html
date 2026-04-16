@@ -3,6 +3,45 @@
   <p>Complete history of all your money movements.</p>
 </div>
 
+<!-- Budget Summary Strip -->
+<div class="budget-summary">
+  <div class="summary-card">
+    <div class="summary-icon">💰</div>
+    <div class="summary-body">
+      <div class="summary-label">Total Budget</div>
+      <div class="summary-value">₹{{ totalBudget().toLocaleString() }}</div>
+    </div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-icon">💸</div>
+    <div class="summary-body">
+      <div class="summary-label">Total Spent</div>
+      <div class="summary-value spent">₹{{ totalSpent().toLocaleString() }}</div>
+    </div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-icon">{{ remainingBudget() >= 0 ? '✅' : '⚠️' }}</div>
+    <div class="summary-body">
+      <div class="summary-label">Remaining</div>
+      <div class="summary-value" [class.positive]="remainingBudget() >= 0" [class.negative]="remainingBudget() < 0">
+        ₹{{ remainingBudget() < 0 ? '-' : '' }}{{ Math.abs(remainingBudget()).toLocaleString() }}
+      </div>
+    </div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-icon">📋</div>
+    <div class="summary-body">
+      <div class="summary-label">Active Budgets</div>
+      <div class="summary-value">
+        {{ activeBudgetCount() }}
+        @if (overBudgetCount() > 0) {
+          <span class="over-badge">{{ overBudgetCount() }} over</span>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="tx-controls card" style="margin-bottom: 20px; padding: 16px 20px;">
   <input class="search-box" type="text" placeholder="Search transactions..." />
   <div class="tx-filters">

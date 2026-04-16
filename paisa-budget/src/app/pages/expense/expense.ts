@@ -1,10 +1,11 @@
 import { Component, computed, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { DataService, ExpenseItem } from '../../services/data.service';
 
 @Component({
   selector: 'app-expense',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './expense.html',
   styleUrl: './expense.scss',
 })
@@ -19,24 +20,29 @@ export class Expense {
   filterCat  = signal('All');
   filterDate = signal('');
 
+  payments = ['UPI', 'Card', 'Cash', 'Wallet', 'Net Banking'];
+
+  // Categories come from active budgets — unique per category name
+  budgetCategories = computed(() => {
+    const map = new Map<string, { category: string; icon: string; types: Set<'monthly' | 'weekly'> }>();
+    for (const b of this.data.budgets().filter(b => b.active)) {
+      if (!map.has(b.category)) {
+        map.set(b.category, { category: b.category, icon: b.icon, types: new Set([b.type]) });
+      } else {
+        map.get(b.category)!.types.add(b.type);
+      }
+    }
+    return Array.from(map.values());
+  });
+
   form = {
     icon:        '🛒',
     description: '',
-    category:    'Food',
+    category:    '',
     amount:      null as number | null,
     payment:     'UPI',
     date:        new Date().toLocaleDateString('en-CA'),
     budgetType:  'monthly' as 'monthly' | 'weekly',
-  };
-
-  categories = ['Food', 'Transport', 'Shopping', 'Health', 'Entertainment',
-                'Utilities', 'Education', 'Fitness', 'Travel', 'Other'];
-  payments   = ['UPI', 'Card', 'Cash', 'Wallet', 'Net Banking'];
-
-  categoryIcons: Record<string, string> = {
-    Food: '🛒', Transport: '🚗', Shopping: '🛍️', Health: '💊',
-    Entertainment: '🎬', Utilities: '💡', Education: '📚',
-    Fitness: '🏋️', Travel: '✈️', Other: '💸',
   };
 
   // Read directly from DataService
@@ -55,11 +61,15 @@ export class Expense {
   todayAmount = this.data.todayTotal;
 
   openModal() {
+    const first = this.budgetCategories()[0];
     this.form = {
-      icon: '🛒', description: '', category: 'Food',
-      amount: null, payment: 'UPI',
-      date: new Date().toLocaleDateString('en-CA'),
-      budgetType: 'monthly',
+      icon:        first?.icon ?? '💸',
+      description: '',
+      category:    first?.category ?? '',
+      amount:      null,
+      payment:     'UPI',
+      date:        new Date().toLocaleDateString('en-CA'),
+      budgetType:  first ? [...first.types][0] : 'monthly',
     };
     this.editMode.set(false);
     this.editingId.set(null);
@@ -90,7 +100,12 @@ export class Expense {
   }
 
   onCategoryChange() {
-    this.form.icon = this.categoryIcons[this.form.category] ?? '💸';
+    const budgetCat = this.budgetCategories().find(c => c.category === this.form.category);
+    this.form.icon = budgetCat?.icon ?? '💸';
+    // Auto-select budget type if only one type exists for this category
+    if (budgetCat?.types.size === 1) {
+      this.form.budgetType = [...budgetCat.types][0];
+    }
   }
 
   async submitExpense() {

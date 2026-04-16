@@ -8,6 +8,7 @@ import { Expense }      from './pages/expense/expense';
 import { Transactions } from './pages/transactions/transactions';
 import { Insights }     from './pages/insights/insights';
 import { Profile }      from './pages/profile/profile';
+import { Daily }        from './pages/daily/daily';
 
 export const routes: Routes = [
   { path: '',           redirectTo: 'login', pathMatch: 'full' },
@@ -18,5 +19,6 @@ export const routes: Routes = [
   { path: 'expense',    component: Expense,      canActivate: [authGuard] },
   { path: 'transactions', component: Transactions, canActivate: [authGuard] },
   { path: 'insights',   component: Insights,     canActivate: [authGuard] },
+  { path: 'daily',      component: Daily,        canActivate: [authGuard] },
   { path: 'profile',    component: Profile,      canActivate: [authGuard] },
 ];

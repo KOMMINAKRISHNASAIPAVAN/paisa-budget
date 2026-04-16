@@ -13,6 +13,7 @@ const CAT_COLORS   = ['#4f6ef7','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4
   styleUrl: './profile.scss',
 })
 export class Profile {
+  Math = Math;
   private data = inject(DataService);
   auth         = inject(AuthService);
 
@@ -71,6 +72,12 @@ export class Profile {
   selectedTotal = computed(() =>
     this.selectedExpenses().reduce((s, e) => s + e.amount, 0)
   );
+
+  activeBudgets      = computed(() => this.data.budgets().filter(b => b.active));
+  totalBudgetLimit   = computed(() => this.activeBudgets().reduce((s, b) => s + b.limit, 0));
+  remainingBudget    = computed(() => this.totalBudgetLimit() - this.selectedTotal());
+  activeBudgetCount  = computed(() => this.activeBudgets().length);
+  overBudgetCount    = computed(() => this.activeBudgets().filter(b => b.spent > b.limit).length);
 
   selectedCategories = computed(() => {
     const expenses = this.selectedExpenses();

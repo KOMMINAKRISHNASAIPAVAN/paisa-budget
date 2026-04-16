@@ -30,8 +30,8 @@
     <div class="filters">
       <select class="filter-select" [(ngModel)]="filterCat" (ngModelChange)="filterCat.set($event)" [ngModel]="filterCat()">
         <option value="All">All Categories</option>
-        @for (cat of categories; track cat) {
-          <option [value]="cat">{{ cat }}</option>
+        @for (cat of budgetCategories(); track cat.category) {
+          <option [value]="cat.category">{{ cat.icon }} {{ cat.category }}</option>
         }
       </select>
       <input type="date" class="filter-date" [ngModel]="filterDate()" (ngModelChange)="filterDate.set($event)" />
@@ -115,16 +115,22 @@
           <!-- Category -->
           <div class="modal-field">
             <label class="modal-label">Category</label>
-            <select
-              class="modal-input"
-              [(ngModel)]="form.category"
-              name="category"
-              (ngModelChange)="onCategoryChange()"
-            >
-              @for (cat of categories; track cat) {
-                <option [value]="cat">{{ categoryIcons[cat] }} {{ cat }}</option>
-              }
-            </select>
+            @if (budgetCategories().length === 0) {
+              <div class="no-budgets-hint">
+                ⚠️ No budgets yet. <a routerLink="/budgets">Create a budget</a> first to add expenses.
+              </div>
+            } @else {
+              <select
+                class="modal-input"
+                [(ngModel)]="form.category"
+                name="category"
+                (ngModelChange)="onCategoryChange()"
+              >
+                @for (cat of budgetCategories(); track cat.category) {
+                  <option [value]="cat.category">{{ cat.icon }} {{ cat.category }}</option>
+                }
+              </select>
+            }
           </div>
 
           <!-- Amount -->

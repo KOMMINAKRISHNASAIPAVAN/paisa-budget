@@ -276,29 +276,14 @@
             </div>
           </div>
 
-          <!-- Category rows -->
+          <!-- Category rows (fixed) -->
           <div class="cat-alloc-list">
             @for (a of allocations(); track a.category; let i = $index) {
               <div class="cat-alloc-row" [class.filled]="a.amount && a.amount > 0">
-
-                <!-- Icon + name block -->
                 <div class="cat-alloc-left">
                   <span class="cat-alloc-icon">{{ a.icon }}</span>
-                  @if (a.category === 'Other') {
-                    <input
-                      class="cat-alloc-custom"
-                      type="text"
-                      placeholder="Your category name"
-                      [ngModel]="a.customName"
-                      (ngModelChange)="updateCustomName(i, $event)"
-                      [name]="'custom_' + i"
-                    />
-                  } @else {
-                    <span class="cat-alloc-name">{{ a.category }}</span>
-                  }
+                  <span class="cat-alloc-name">{{ a.category }}</span>
                 </div>
-
-                <!-- Amount input -->
                 <div class="cat-alloc-input-wrap">
                   <span class="cat-alloc-prefix">₹</span>
                   <input
@@ -311,7 +296,6 @@
                     [name]="'alloc_' + i"
                   />
                 </div>
-
                 @if (a.amount && a.amount > 0 && effectiveBudget()) {
                   <span class="cat-alloc-pct">{{ Math.round((a.amount / effectiveBudget()) * 100) }}%</span>
                 } @else {
@@ -319,7 +303,47 @@
                 }
               </div>
             }
+
+            <!-- Custom / Other rows -->
+            @for (a of customAllocations(); track $index; let ci = $index) {
+              <div class="cat-alloc-row cat-alloc-custom-row" [class.filled]="a.amount && a.amount > 0">
+                <div class="cat-alloc-left">
+                  <span class="cat-alloc-icon">✏️</span>
+                  <input
+                    class="cat-alloc-custom"
+                    type="text"
+                    placeholder="Category name…"
+                    [ngModel]="a.customName"
+                    (ngModelChange)="updateCustomAllocation(ci, 'customName', $event)"
+                    [name]="'cname_' + ci"
+                  />
+                </div>
+                <div class="cat-alloc-input-wrap">
+                  <span class="cat-alloc-prefix">₹</span>
+                  <input
+                    class="cat-alloc-input"
+                    type="number"
+                    placeholder="0"
+                    min="0"
+                    [ngModel]="a.amount"
+                    (ngModelChange)="updateCustomAllocation(ci, 'amount', $event || null)"
+                    [name]="'camount_' + ci"
+                  />
+                </div>
+                @if (a.amount && a.amount > 0 && effectiveBudget()) {
+                  <span class="cat-alloc-pct">{{ Math.round((a.amount / effectiveBudget()) * 100) }}%</span>
+                } @else {
+                  <span class="cat-alloc-pct empty">—</span>
+                }
+                <button type="button" class="cat-remove-btn" (click)="removeCustomAllocation(ci)" title="Remove">✕</button>
+              </div>
+            }
           </div>
+
+          <!-- Add custom category button -->
+          <button type="button" class="add-custom-btn" (click)="addCustomCategory()">
+            <span class="add-custom-icon">＋</span> Add Custom Category
+          </button>
 
           <div class="modal-actions">
             <button type="button" class="btn btn-outline" (click)="goBack()" [disabled]="saving()">← Back</button>
