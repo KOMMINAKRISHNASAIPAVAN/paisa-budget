@@ -1,8 +1,11 @@
-name: Deploy to Netlify
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches: [main]
+
+permissions:
+  contents: write
 
 jobs:
   deploy:
@@ -23,7 +26,10 @@ jobs:
 
       - name: Build Angular app
         working-directory: paisa-budget
-        run: npx ng build --configuration production
+        run: npx ng build --configuration production --base-href /paisa-budget/
 
-      - name: Deploy to Netlify
-        run: npx netlify-cli deploy --prod --dir=paisa-budget/dist/paisa-budget/browser --site=${{ secrets.NETLIFY_SITE_ID }} --auth=${{ secrets.NETLIFY_AUTH_TOKEN }}
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: paisa-budget/dist/paisa-budget/browser
