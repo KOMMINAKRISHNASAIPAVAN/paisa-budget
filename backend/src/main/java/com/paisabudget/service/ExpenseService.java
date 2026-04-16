@@ -42,8 +42,11 @@ public class ExpenseService {
         expense.setPaymentMethod(req.getPaymentMethod());
         expense.setExpenseDate(req.getExpenseDate());
 
+        Budget.BudgetType budgetType = Budget.BudgetType.valueOf(req.getBudgetType());
+        expense.setBudgetType(budgetType);
+
         Expense saved = expenseRepository.save(expense);
-        budgetRepository.addSpent(userId, req.getCategory(), req.getAmount());
+        budgetRepository.addSpent(userId, req.getCategory(), req.getAmount(), budgetType);
         return saved;
     }
 

@@ -1,0 +1,11 @@
+{
+  "/api": {
+    "target": "https://paisa-budget-production.up.railway.app",
+    "secure": true,
+    "changeOrigin": true,
+    "headers": {
+      "Origin": "https://glistening-gaufre-7a6453.netlify.app"
+    },
+    "logLevel": "info"
+  }
+}

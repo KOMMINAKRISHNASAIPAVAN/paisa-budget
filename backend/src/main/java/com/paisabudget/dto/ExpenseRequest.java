@@ -18,6 +18,8 @@ public class ExpenseRequest {
 
     private String paymentMethod = "Cash";
 
+    private String budgetType = "monthly";
+
     @NotNull(message = "Amount is required")
     @Positive(message = "Amount must be positive")
     private Double amount;
@@ -38,6 +40,9 @@ public class ExpenseRequest {
 
     public String getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+
+    public String getBudgetType() { return budgetType; }
+    public void setBudgetType(String budgetType) { this.budgetType = budgetType; }
 
     public Double getAmount() { return amount; }
     public void setAmount(Double amount) { this.amount = amount; }

@@ -49,6 +49,7 @@ public class BudgetService {
             b.setCategory(req.getCategory());
             b.setType(type);
             b.setPeriodLabel(req.getPeriodLabel());
+            b.setTotalBudget(req.getTotalBudget());
             b.setBudgetLimit(req.getBudgetLimit());
             return b;
         }).toList();

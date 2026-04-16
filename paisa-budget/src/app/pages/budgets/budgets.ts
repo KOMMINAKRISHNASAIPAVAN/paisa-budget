@@ -24,7 +24,7 @@ export class Budgets {
 
   activePeriod = signal<PeriodFilter>('all');
   showModal    = signal(false);
-  step         = signal<1 | 2>(1);
+  step         = signal<1 | 2 | 3>(1);
   formError    = signal('');
 
   // ── Step 1 ───────────────────────────────────────────
@@ -45,11 +45,16 @@ export class Budgets {
 
   allocations = signal<Allocation[]>(this.fixedCategories.map(c => ({ ...c })));
 
+  effectiveBudget = computed(() => {
+    const total = this.totalBudget() ?? 0;
+    return this.periodType() === 'weekly' ? Math.round(total / 4) : total;
+  });
+
   totalAllocated = computed(() => this.allocations().reduce((s, a) => s + (a.amount ?? 0), 0));
-  remaining      = computed(() => (this.totalBudget() ?? 0) - this.totalAllocated());
+  remaining      = computed(() => this.effectiveBudget() - this.totalAllocated());
   remainingPct   = computed(() => {
-    const t = this.totalBudget() ?? 0;
-    return t ? Math.min((this.totalAllocated() / t) * 100, 100) : 0;
+    const e = this.effectiveBudget();
+    return e ? Math.min((this.totalAllocated() / e) * 100, 100) : 0;
   });
 
   // ── Read from DataService (persisted) ───────────────
@@ -91,7 +96,16 @@ export class Budgets {
     this.step.set(2);
   }
 
-  goBack() { this.formError.set(''); this.step.set(1); }
+  goToStep3() {
+    this.formError.set('');
+    this.step.set(3);
+  }
+
+  goBack() {
+    this.formError.set('');
+    if (this.step() === 3) this.step.set(2);
+    else this.step.set(1);
+  }
 
   updateAllocation(index: number, value: number | null) {
     this.allocations.update(list => list.map((a, i) => i === index ? { ...a, amount: value } : a));
@@ -121,15 +135,16 @@ export class Budgets {
       : 'Week ' + this.getWeekNumber(now) + ' (current)';
 
     const newBudgets: Budget[] = filled.map(a => ({
-      id:       crypto.randomUUID(),
-      icon:     a.icon,
-      category: a.category === 'Other' ? a.customName!.trim() : a.category,
-      type:     this.periodType(),
+      id:          crypto.randomUUID(),
+      icon:        a.icon,
+      category:    a.category === 'Other' ? a.customName!.trim() : a.category,
+      type:        this.periodType(),
       period,
-      spent:    0,
-      limit:    a.amount!,
-      status:   'On Track',
-      active:   true,
+      spent:       0,
+      limit:       a.amount!,
+      totalBudget: this.totalBudget() ?? 0,
+      status:      'On Track',
+      active:      true,
     }));
 
     this.saving.set(true);

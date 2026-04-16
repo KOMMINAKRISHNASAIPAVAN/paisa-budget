@@ -9,6 +9,7 @@ export interface Budget {
   category: string;
   type: 'monthly' | 'weekly';
   period: string;
+  totalBudget: number;
   limit: number;
   spent: number;
   status: string;
@@ -23,6 +24,7 @@ export interface ExpenseItem {
   date: string;
   payment: string;
   amount: number;
+  budgetType: 'monthly' | 'weekly';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -64,6 +66,7 @@ export class DataService {
         icon:        b.icon,
         type:        b.type,
         periodLabel: b.period,
+        totalBudget: b.totalBudget,
         budgetLimit: b.limit,
       }));
       await firstValueFrom(
@@ -104,6 +107,7 @@ export class DataService {
         expenseDate:   this.toIsoDate(item.date),
         paymentMethod: item.payment,
         amount:        item.amount,
+        budgetType:    item.budgetType,
       };
       const data: any = await firstValueFrom(
         this.http.post<any>(`${environment.apiUrl}/api/expenses`, payload)
@@ -127,15 +131,16 @@ export class DataService {
   // ── Mappers ───────────────────────────────────────────────
   private mapBudget(b: any): Budget {
     return {
-      id:       String(b.id),
-      icon:     b.icon ?? '💸',
-      category: b.category,
-      type:     b.type,
-      period:   b.periodLabel ?? '',
-      limit:    b.budgetLimit,
-      spent:    b.spent ?? 0,
-      status:   b.status ?? 'On Track',
-      active:   b.isActive ?? true,
+      id:          String(b.id),
+      icon:        b.icon ?? '💸',
+      category:    b.category,
+      type:        b.type,
+      period:      b.periodLabel ?? '',
+      totalBudget: b.totalBudget ?? 0,
+      limit:       b.budgetLimit,
+      spent:       b.spent ?? 0,
+      status:      b.status ?? 'On Track',
+      active:      b.isActive ?? true,
     };
   }
 
@@ -148,6 +153,7 @@ export class DataService {
       date:        this.formatDate(e.expenseDate),
       payment:     e.paymentMethod ?? 'Cash',
       amount:      e.amount,
+      budgetType:  e.budgetType ?? 'monthly',
     };
   }
 

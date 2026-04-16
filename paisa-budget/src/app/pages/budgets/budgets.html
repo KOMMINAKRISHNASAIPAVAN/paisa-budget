@@ -150,13 +150,18 @@
 
       <!-- Step indicator -->
       <div class="step-bar">
-        <div class="step-item" [class.done]="step() >= 1" [class.active]="step() === 1">
+        <div class="step-item" [class.done]="step() > 1" [class.active]="step() === 1">
           <div class="step-dot">1</div>
-          <span>Set Budget</span>
+          <span>Total Amount</span>
         </div>
-        <div class="step-line" [class.filled]="step() === 2"></div>
-        <div class="step-item" [class.active]="step() === 2">
+        <div class="step-line" [class.filled]="step() > 1"></div>
+        <div class="step-item" [class.done]="step() > 2" [class.active]="step() === 2">
           <div class="step-dot">2</div>
+          <span>Choose Period</span>
+        </div>
+        <div class="step-line" [class.filled]="step() === 3"></div>
+        <div class="step-item" [class.active]="step() === 3">
+          <div class="step-dot">3</div>
           <span>Split Categories</span>
         </div>
       </div>
@@ -165,11 +170,11 @@
         <div class="modal-error">⚠️ {{ formError() }}</div>
       }
 
-      <!-- ─── STEP 1: Total budget + period ─────────── -->
+      <!-- ─── STEP 1: Total budget amount ─────────── -->
       @if (step() === 1) {
         <div class="step-content">
-          <h2 class="step-title">How much do you want to budget?</h2>
-          <p class="step-sub">Enter the total amount, then choose Monthly or Weekly.</p>
+          <h2 class="step-title">What's your total budget?</h2>
+          <p class="step-sub">Enter the total amount you want to budget.</p>
 
           <div class="total-input-wrap">
             <span class="total-prefix">₹</span>
@@ -185,6 +190,21 @@
             />
           </div>
 
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" (click)="goToStep2()">
+              Next → Choose Period
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- ─── STEP 2: Monthly or Weekly ────────────── -->
+      @if (step() === 2) {
+        <div class="step-content">
+          <h2 class="step-title">How do you want to budget?</h2>
+          <p class="step-sub">Your total budget is <strong>₹{{ (totalBudget() ?? 0).toLocaleString() }}</strong>. Choose how to split it.</p>
+
           <div class="period-selector">
             <button
               type="button"
@@ -195,6 +215,11 @@
               <span class="period-card-icon">📅</span>
               <div class="period-card-label">Monthly</div>
               <div class="period-card-sub">Reset every month</div>
+              @if (periodType() === 'monthly') {
+                <div class="period-card-amount">
+                  ₹{{ (totalBudget() ?? 0).toLocaleString() }} / month
+                </div>
+              }
             </button>
             <button
               type="button"
@@ -205,20 +230,26 @@
               <span class="period-card-icon">📆</span>
               <div class="period-card-label">Weekly</div>
               <div class="period-card-sub">Reset every week</div>
+              @if (periodType() === 'weekly') {
+                <div class="period-card-amount">
+                  ₹{{ effectiveBudget().toLocaleString() }} / week
+                  <span class="period-card-hint">(₹{{ (totalBudget() ?? 0).toLocaleString() }} ÷ 4 weeks)</span>
+                </div>
+              }
             </button>
           </div>
 
           <div class="modal-actions">
-            <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
-            <button type="button" class="btn btn-primary" (click)="goToStep2()">
+            <button type="button" class="btn btn-outline" (click)="goBack()">← Back</button>
+            <button type="button" class="btn btn-primary" (click)="goToStep3()">
               Next → Split Categories
             </button>
           </div>
         </div>
       }
 
-      <!-- ─── STEP 2: Category allocation ──────────── -->
-      @if (step() === 2) {
+      <!-- ─── STEP 3: Category allocation ──────────── -->
+      @if (step() === 3) {
         <div class="step-content">
           <h2 class="step-title">Split across categories</h2>
 
@@ -227,7 +258,10 @@
             <div class="meter-row">
               <span class="meter-label">
                 {{ periodType() === 'monthly' ? '📅 Monthly' : '📆 Weekly' }} Budget:
-                <strong>₹{{ (totalBudget() ?? 0).toLocaleString() }}</strong>
+                <strong>₹{{ effectiveBudget().toLocaleString() }}</strong>
+                @if (periodType() === 'weekly') {
+                  <span class="meter-hint">(from ₹{{ (totalBudget() ?? 0).toLocaleString() }} total)</span>
+                }
               </span>
               <span class="meter-remaining" [class.over]="remaining() < 0">
                 {{ remaining() >= 0 ? '₹' + remaining().toLocaleString() + ' remaining' : '₹' + Math.abs(remaining()).toLocaleString() + ' over budget!' }}
@@ -278,8 +312,8 @@
                   />
                 </div>
 
-                @if (a.amount && a.amount > 0 && totalBudget()) {
-                  <span class="cat-alloc-pct">{{ Math.round((a.amount / (totalBudget()!)) * 100) }}%</span>
+                @if (a.amount && a.amount > 0 && effectiveBudget()) {
+                  <span class="cat-alloc-pct">{{ Math.round((a.amount / effectiveBudget()) * 100) }}%</span>
                 } @else {
                   <span class="cat-alloc-pct empty">—</span>
                 }

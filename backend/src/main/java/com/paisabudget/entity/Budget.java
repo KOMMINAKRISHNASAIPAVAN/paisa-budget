@@ -32,6 +32,9 @@ public class Budget {
     @Column(name = "period_label", length = 50)
     private String periodLabel;
 
+    @Column(name = "total_budget")
+    private Double totalBudget;
+
     @Column(name = "budget_limit", nullable = false)
     private Double budgetLimit;
 
@@ -66,6 +69,9 @@ public class Budget {
 
     public String getPeriodLabel() { return periodLabel; }
     public void setPeriodLabel(String periodLabel) { this.periodLabel = periodLabel; }
+
+    public Double getTotalBudget() { return totalBudget; }
+    public void setTotalBudget(Double totalBudget) { this.totalBudget = totalBudget; }
 
     public Double getBudgetLimit() { return budgetLimit; }
     public void setBudgetLimit(Double budgetLimit) { this.budgetLimit = budgetLimit; }
