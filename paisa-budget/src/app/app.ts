@@ -3,6 +3,7 @@ import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { Sidebar } from './layout/sidebar/sidebar';
 import { AuthService } from './services/auth';
 import { DataService } from './services/data.service';
+import { ThemeService } from './services/theme.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs';
 
@@ -16,6 +17,9 @@ export class App {
   private router = inject(Router);
   auth = inject(AuthService);
   private data = inject(DataService);
+  // Injecting ThemeService here ensures it initialises (reads localStorage
+  // and applies data-theme attribute) as soon as the app boots.
+  private _theme = inject(ThemeService);
 
   private url = toSignal(
     this.router.events.pipe(

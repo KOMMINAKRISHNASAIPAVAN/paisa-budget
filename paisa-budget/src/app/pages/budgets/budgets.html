@@ -1,40 +1,40 @@
 <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
   <div>
-    <h1>Budgets</h1>
-    <p>Set and manage your spending limits — monthly or weekly.</p>
+    <h1>{{ 'budgets.title' | t }}</h1>
+    <p>{{ 'budgets.desc' | t }}</p>
   </div>
-  <button class="btn btn-primary" (click)="openModal()">+ New Budget</button>
+  <button class="btn btn-primary" (click)="openModal()">{{ 'budgets.newBudget' | t }}</button>
 </div>
 
 <!-- Period Toggle -->
 <div class="period-toggle">
-  <button class="toggle-btn" [class.active]="activePeriod() === 'all'" (click)="setFilter('all')">All</button>
+  <button class="toggle-btn" [class.active]="activePeriod() === 'all'" (click)="setFilter('all')">{{ 'common.all' | t }}</button>
   <button class="toggle-btn monthly" [class.active]="activePeriod() === 'monthly'" (click)="setFilter('monthly')">
-    <span class="toggle-icon">📅</span> Monthly
+    <span class="toggle-icon">📅</span> {{ 'common.monthly' | t }}
   </button>
   <button class="toggle-btn weekly" [class.active]="activePeriod() === 'weekly'" (click)="setFilter('weekly')">
-    <span class="toggle-icon">📆</span> Weekly
+    <span class="toggle-icon">📆</span> {{ 'common.weekly' | t }}
   </button>
 </div>
 
 <!-- Summary Strip -->
 <div class="summary-strip">
   <div class="strip-item">
-    <span class="strip-label">Total Budget</span>
+    <span class="strip-label">{{ 'budgets.totalBudget' | t }}</span>
     <span class="strip-value">₹{{ summaryTotal().toLocaleString() }}</span>
   </div>
   <div class="strip-item">
-    <span class="strip-label">Total Spent</span>
-    <span class="strip-value" style="color:#ef4444;">₹{{ summarySpent().toLocaleString() }}</span>
+    <span class="strip-label">{{ 'budgets.totalSpent' | t }}</span>
+    <span class="strip-value" style="color:var(--danger);">₹{{ summarySpent().toLocaleString() }}</span>
   </div>
   <div class="strip-item">
-    <span class="strip-label">Remaining</span>
-    <span class="strip-value" [style.color]="summaryLeft() >= 0 ? '#10b981' : '#ef4444'">
+    <span class="strip-label">{{ 'budgets.remaining' | t }}</span>
+    <span class="strip-value" [style.color]="summaryLeft() >= 0 ? 'var(--success)' : 'var(--danger)'">
       ₹{{ summaryLeft().toLocaleString() }}
     </span>
   </div>
   <div class="strip-item">
-    <span class="strip-label">Active</span>
+    <span class="strip-label">{{ 'budgets.active' | t }}</span>
     <span class="strip-value">{{ activeBudgets().length }} / {{ filteredBudgets().length }}</span>
   </div>
 </div>
@@ -43,9 +43,9 @@
 @if (filteredBudgets().length === 0) {
   <div class="empty-budgets">
     <div class="empty-budgets-icon">💰</div>
-    <h3>No budgets yet</h3>
-    <p>Click <strong>+ New Budget</strong> to set your total budget and split it across categories.</p>
-    <button class="btn btn-primary" (click)="openModal()">+ New Budget</button>
+    <h3>{{ 'budgets.noTitle' | t }}</h3>
+    <p>{{ 'budgets.noMsg' | t }}</p>
+    <button class="btn btn-primary" (click)="openModal()">{{ 'budgets.newBudget' | t }}</button>
   </div>
 }
 
@@ -56,7 +56,7 @@
   <!-- ALL view: grouped by Monthly then Weekly -->
   @if (monthlyBudgets().length > 0) {
     <div class="budget-section-header">
-      <span class="section-icon">📅</span> Monthly Budgets
+      <span class="section-icon">📅</span> {{ 'budgets.monthly' | t }}
       <span class="section-count">{{ monthlyBudgets().length }}</span>
     </div>
     <div class="budgets-grid">
@@ -68,7 +68,7 @@
 
   @if (weeklyBudgets().length > 0) {
     <div class="budget-section-header" style="margin-top: 20px;">
-      <span class="section-icon">📆</span> Weekly Budgets
+      <span class="section-icon">📆</span> {{ 'budgets.weekly' | t }}
       <span class="section-count">{{ weeklyBudgets().length }}</span>
     </div>
     <div class="budgets-grid">
@@ -100,18 +100,18 @@
       </div>
       <div class="bc-header-actions">
         <div class="bc-toggle-wrap">
-          <span class="bc-toggle-label">{{ b.active ? 'Active' : 'Hidden' }}</span>
+          <span class="bc-toggle-label">{{ b.active ? ('budgets.activeLabel' | t) : ('budgets.hiddenLabel' | t) }}</span>
           <div class="bc-toggle" [class.on]="b.active" (click)="toggleActive(b)">
             <div class="bc-toggle-knob"></div>
           </div>
         </div>
-        <button class="bc-delete-btn" (click)="deleteBudget(b)" title="Delete budget">🗑️</button>
+        <button class="bc-delete-btn" (click)="deleteBudget(b)" [title]="'common.delete' | t">🗑️</button>
       </div>
     </div>
 
     <div class="bc-pills">
       <span class="period-pill" [class]="b.type === 'monthly' ? 'pill-monthly' : 'pill-weekly'">
-        {{ b.type === 'monthly' ? '📅 Monthly' : '📆 Weekly' }}
+        {{ b.type === 'monthly' ? ('budgets.monthlyOption' | t) : ('budgets.weeklyOption' | t) }}
       </span>
       <span class="badge" [class]="b.status === 'Over' ? 'badge-red' : b.status === 'On Track' ? 'badge-green' : 'badge-yellow'">
         {{ b.status }}
@@ -120,18 +120,18 @@
 
     <div class="bc-body" [class.dimmed]="!b.active">
       <div class="bc-amounts">
-        <span class="bc-spent">₹{{ b.spent.toLocaleString() }} spent</span>
+        <span class="bc-spent">₹{{ b.spent.toLocaleString() }} {{ 'budgets.totalSpent' | t }}</span>
         <span class="bc-limit">of ₹{{ b.limit.toLocaleString() }}</span>
       </div>
       <div class="progress-bar">
         <div class="progress-fill"
              [style.width.%]="Math.min((b.spent / b.limit) * 100, 100)"
-             [style.background]="!b.active ? '#d1d5db' : b.spent > b.limit ? '#ef4444' : b.type === 'weekly' ? '#8b5cf6' : '#4f6ef7'">
+             [style.background]="!b.active ? 'var(--text-muted)' : b.spent > b.limit ? 'var(--danger)' : b.type === 'weekly' ? 'var(--purple)' : 'var(--accent)'">
         </div>
       </div>
       <div class="bc-footer">
         <span>{{ Math.round((b.spent / b.limit) * 100) }}% used</span>
-        <span [style.color]="!b.active ? '#9ca3af' : b.limit - b.spent < 0 ? '#ef4444' : '#6b7280'">
+        <span [style.color]="!b.active ? 'var(--text-muted)' : b.limit - b.spent < 0 ? 'var(--danger)' : 'var(--text-secondary)'">
           {{ b.limit - b.spent >= 0
              ? '₹' + (b.limit - b.spent).toLocaleString() + ' left'
              : '₹' + Math.abs(b.limit - b.spent).toLocaleString() + ' over' }}
@@ -152,17 +152,17 @@
       <div class="step-bar">
         <div class="step-item" [class.done]="step() > 1" [class.active]="step() === 1">
           <div class="step-dot">1</div>
-          <span>Total Amount</span>
+          <span>{{ 'budgets.step1' | t }}</span>
         </div>
         <div class="step-line" [class.filled]="step() > 1"></div>
         <div class="step-item" [class.done]="step() > 2" [class.active]="step() === 2">
           <div class="step-dot">2</div>
-          <span>Choose Period</span>
+          <span>{{ 'budgets.step2' | t }}</span>
         </div>
         <div class="step-line" [class.filled]="step() === 3"></div>
         <div class="step-item" [class.active]="step() === 3">
           <div class="step-dot">3</div>
-          <span>Split Categories</span>
+          <span>{{ 'budgets.step3' | t }}</span>
         </div>
       </div>
 
@@ -173,8 +173,8 @@
       <!-- ─── STEP 1: Total budget amount ─────────── -->
       @if (step() === 1) {
         <div class="step-content">
-          <h2 class="step-title">What's your total budget?</h2>
-          <p class="step-sub">Enter the total amount you want to budget.</p>
+          <h2 class="step-title">{{ 'budgets.step1Title' | t }}</h2>
+          <p class="step-sub">{{ 'budgets.step1Sub' | t }}</p>
 
           <div class="total-input-wrap">
             <span class="total-prefix">₹</span>
@@ -191,9 +191,9 @@
           </div>
 
           <div class="modal-actions">
-            <button type="button" class="btn btn-outline" (click)="closeModal()">Cancel</button>
+            <button type="button" class="btn btn-outline" (click)="closeModal()">{{ 'common.cancel' | t }}</button>
             <button type="button" class="btn btn-primary" (click)="goToStep2()">
-              Next → Choose Period
+              {{ 'budgets.nextPeriod' | t }}
             </button>
           </div>
         </div>
@@ -202,8 +202,8 @@
       <!-- ─── STEP 2: Monthly or Weekly ────────────── -->
       @if (step() === 2) {
         <div class="step-content">
-          <h2 class="step-title">How do you want to budget?</h2>
-          <p class="step-sub">Your total budget is <strong>₹{{ (totalBudget() ?? 0).toLocaleString() }}</strong>. Choose how to split it.</p>
+          <h2 class="step-title">{{ 'budgets.step2Title' | t }}</h2>
+          <p class="step-sub">Your total budget is <strong>₹{{ (totalBudget() ?? 0).toLocaleString() }}</strong>.</p>
 
           <div class="period-selector">
             <button
@@ -213,8 +213,8 @@
               (click)="periodType.set('monthly')"
             >
               <span class="period-card-icon">📅</span>
-              <div class="period-card-label">Monthly</div>
-              <div class="period-card-sub">Reset every month</div>
+              <div class="period-card-label">{{ 'budgets.monthlyOption' | t }}</div>
+              <div class="period-card-sub">{{ 'budgets.monthlyDesc' | t }}</div>
               @if (periodType() === 'monthly') {
                 <div class="period-card-amount">
                   ₹{{ (totalBudget() ?? 0).toLocaleString() }} / month
@@ -228,8 +228,8 @@
               (click)="periodType.set('weekly')"
             >
               <span class="period-card-icon">📆</span>
-              <div class="period-card-label">Weekly</div>
-              <div class="period-card-sub">Reset every week</div>
+              <div class="period-card-label">{{ 'budgets.weeklyOption' | t }}</div>
+              <div class="period-card-sub">{{ 'budgets.weeklyDesc' | t }}</div>
               @if (periodType() === 'weekly') {
                 <div class="period-card-amount">
                   ₹{{ effectiveBudget().toLocaleString() }} / week
@@ -240,9 +240,9 @@
           </div>
 
           <div class="modal-actions">
-            <button type="button" class="btn btn-outline" (click)="goBack()">← Back</button>
+            <button type="button" class="btn btn-outline" (click)="goBack()">{{ 'common.back' | t }}</button>
             <button type="button" class="btn btn-primary" (click)="goToStep3()">
-              Next → Split Categories
+              {{ 'budgets.nextCategories' | t }}
             </button>
           </div>
         </div>
@@ -251,27 +251,24 @@
       <!-- ─── STEP 3: Category allocation ──────────── -->
       @if (step() === 3) {
         <div class="step-content">
-          <h2 class="step-title">Split across categories</h2>
+          <h2 class="step-title">{{ 'budgets.step3Title' | t }}</h2>
 
           <!-- Budget meter -->
           <div class="budget-meter">
             <div class="meter-row">
               <span class="meter-label">
-                {{ periodType() === 'monthly' ? '📅 Monthly' : '📆 Weekly' }} Budget:
+                {{ periodType() === 'monthly' ? ('budgets.monthlyOption' | t) : ('budgets.weeklyOption' | t) }} {{ 'budgets.budgetLabel' | t }}
                 <strong>₹{{ effectiveBudget().toLocaleString() }}</strong>
-                @if (periodType() === 'weekly') {
-                  <span class="meter-hint">(from ₹{{ (totalBudget() ?? 0).toLocaleString() }} total)</span>
-                }
               </span>
               <span class="meter-remaining" [class.over]="remaining() < 0">
-                {{ remaining() >= 0 ? '₹' + remaining().toLocaleString() + ' remaining' : '₹' + Math.abs(remaining()).toLocaleString() + ' over budget!' }}
+                {{ remaining() >= 0 ? '₹' + remaining().toLocaleString() + ' ' + ('budgets.remaining2' | t) : '₹' + Math.abs(remaining()).toLocaleString() + ' ' + ('budgets.overBudget' | t) }}
               </span>
             </div>
             <div class="meter-bar">
               <div
                 class="meter-fill"
                 [style.width.%]="remainingPct()"
-                [style.background]="remaining() < 0 ? '#ef4444' : remaining() === 0 ? '#10b981' : '#4f6ef7'"
+                [style.background]="remaining() < 0 ? 'var(--danger)' : remaining() === 0 ? 'var(--success)' : 'var(--accent)'"
               ></div>
             </div>
           </div>
@@ -312,7 +309,7 @@
                   <input
                     class="cat-alloc-custom"
                     type="text"
-                    placeholder="Category name…"
+                    [placeholder]="'budgets.catPlaceholder' | t"
                     [ngModel]="a.customName"
                     (ngModelChange)="updateCustomAllocation(ci, 'customName', $event)"
                     [name]="'cname_' + ci"
@@ -342,13 +339,13 @@
 
           <!-- Add custom category button -->
           <button type="button" class="add-custom-btn" (click)="addCustomCategory()">
-            <span class="add-custom-icon">＋</span> Add Custom Category
+            <span class="add-custom-icon">＋</span> {{ 'budgets.addCustom' | t }}
           </button>
 
           <div class="modal-actions">
-            <button type="button" class="btn btn-outline" (click)="goBack()" [disabled]="saving()">← Back</button>
+            <button type="button" class="btn btn-outline" (click)="goBack()" [disabled]="saving()">{{ 'common.back' | t }}</button>
             <button type="button" class="btn btn-primary" (click)="submitBudget()" [disabled]="saving()">
-              {{ saving() ? 'Saving...' : 'Create Budgets' }}
+              {{ saving() ? ('common.saving' | t) : ('budgets.createBtn' | t) }}
             </button>
           </div>
         </div>

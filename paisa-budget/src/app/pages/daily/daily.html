@@ -1,6 +1,6 @@
 <div class="page-header">
-  <h1>Daily Tracker</h1>
-  <p>Log your daily spending and income freely — no budget needed.</p>
+  <h1>{{ 'daily.title' | t }}</h1>
+  <p>{{ 'daily.desc' | t }}</p>
 </div>
 
 <!-- ── Quick stats (2 cards) ── -->
@@ -9,21 +9,21 @@
     <div class="ds-icon">📅</div>
     <div>
       <div class="ds-val">₹{{ todaySpent().toLocaleString() }}</div>
-      <div class="ds-lbl">Today's Spend</div>
+      <div class="ds-lbl">{{ 'daily.todaySpend' | t }}</div>
     </div>
   </div>
   <div class="ds-card income-card">
     <div class="ds-icon">💰</div>
     <div>
       <div class="ds-val income">₹{{ monthIncome().toLocaleString() }}</div>
-      <div class="ds-lbl">{{ selectedMonthMeta()?.label }} Income</div>
+      <div class="ds-lbl">{{ selectedMonthMeta()?.label }} {{ 'daily.income' | t }}</div>
     </div>
   </div>
   <div class="ds-card">
     <div class="ds-icon">💸</div>
     <div>
       <div class="ds-val spent">₹{{ monthSpent().toLocaleString() }}</div>
-      <div class="ds-lbl">{{ selectedMonthMeta()?.label }} Spent</div>
+      <div class="ds-lbl">{{ selectedMonthMeta()?.label }} {{ 'daily.spent' | t }}</div>
     </div>
   </div>
   <div class="ds-card" [class.balance-positive]="monthBalance() >= 0" [class.balance-negative]="monthBalance() < 0">
@@ -32,7 +32,7 @@
       <div class="ds-val" [class.income]="monthBalance() >= 0" [class.spent]="monthBalance() < 0">
         {{ monthBalance() < 0 ? '-' : '' }}₹{{ Math.abs(monthBalance()).toLocaleString() }}
       </div>
-      <div class="ds-lbl">Balance</div>
+      <div class="ds-lbl">{{ 'daily.balance' | t }}</div>
     </div>
   </div>
 </div>
@@ -48,7 +48,7 @@
       [class.selected]="form.entryType === 'EXPENSE'"
       (click)="form.entryType = 'EXPENSE'"
     >
-      💸 Expense
+      💸 {{ 'daily.expense' | t }}
     </button>
     <button
       type="button"
@@ -56,7 +56,7 @@
       [class.selected]="form.entryType === 'INCOME'"
       (click)="form.entryType = 'INCOME'"
     >
-      💰 Income
+      💰 {{ 'daily.income' | t }}
     </button>
   </div>
 
@@ -67,12 +67,12 @@
   <div class="add-entry-grid">
     <div class="entry-field grow">
       <label class="entry-label">
-        {{ form.entryType === 'INCOME' ? 'Income source / description' : 'What did you spend on?' }}
+        {{ form.entryType === 'INCOME' ? ('daily.incomeDesc' | t) : ('daily.expenseDesc' | t) }}
       </label>
       <input
         class="entry-input"
         type="text"
-        [placeholder]="form.entryType === 'INCOME' ? 'e.g. Salary, Freelance, Gift…' : 'e.g. Tea, Auto, Snacks…'"
+        [placeholder]="form.entryType === 'INCOME' ? ('daily.incomePlaceholder' | t) : ('daily.expensePlaceholder' | t)"
         [(ngModel)]="form.description"
         name="description"
         (keyup.enter)="addEntry()"
@@ -80,7 +80,7 @@
     </div>
 
     <div class="entry-field">
-      <label class="entry-label">Amount (₹)</label>
+      <label class="entry-label">{{ 'daily.amountLabel' | t }}</label>
       <div class="entry-amt-wrap" [class.income-border]="form.entryType === 'INCOME'">
         <span class="entry-prefix">₹</span>
         <input
@@ -96,21 +96,32 @@
     </div>
 
     <div class="entry-field">
-      <label class="entry-label">Date</label>
-      <input
-        class="entry-input"
-        type="date"
-        [(ngModel)]="form.entryDate"
-        name="entryDate"
-      />
+      <label class="entry-label">{{ 'daily.dateLabel' | t }}</label>
+      @if (form.entryType === 'EXPENSE') {
+        <input
+          class="entry-input"
+          type="date"
+          [(ngModel)]="form.expenseDate"
+          name="expenseDate"
+          [max]="today"
+        />
+      } @else {
+        <input
+          class="entry-input"
+          type="date"
+          [(ngModel)]="form.incomeDate"
+          name="incomeDate"
+          [max]="today"
+        />
+      }
     </div>
 
     <div class="entry-field grow">
-      <label class="entry-label">Note <span class="optional">(optional)</span></label>
+      <label class="entry-label">{{ 'daily.noteLabel' | t }} <span class="optional">({{ 'daily.optional' | t }})</span></label>
       <input
         class="entry-input"
         type="text"
-        placeholder="Any extra detail…"
+        [placeholder]="'daily.notePlaceholder' | t"
         [(ngModel)]="form.note"
         name="note"
         (keyup.enter)="addEntry()"
@@ -125,7 +136,7 @@
         (click)="addEntry()"
         [disabled]="saving()"
       >
-        {{ saving() ? 'Saving…' : (form.entryType === 'INCOME' ? '+ Add Income' : '+ Add Spend') }}
+        {{ saving() ? ('common.saving' | t) : (form.entryType === 'INCOME' ? ('daily.addIncome' | t) : ('daily.addSpend' | t)) }}
       </button>
     </div>
   </div>
@@ -134,7 +145,7 @@
 <!-- ── Month filter + history ── -->
 <div class="card">
   <div class="history-header">
-    <h3>History</h3>
+    <h3>{{ 'daily.history' | t }}</h3>
     <select class="month-select" [ngModel]="selectedMonthVal()" (ngModelChange)="selectedMonthVal.set($event)">
       @for (m of availableMonths(); track m.value) {
         <option [value]="m.value">{{ m.label }}</option>
@@ -145,23 +156,23 @@
   @if (monthEntries().length === 0) {
     <div class="empty-state">
       <div class="empty-icon">📭</div>
-      <p>No entries for this month yet.<br>Add your first income or spend above.</p>
+      <p>{{ 'daily.noEntries' | t }}</p>
     </div>
   } @else {
     <!-- Income vs Spent summary bar -->
     <div class="month-summary-banner">
       <div class="msb-item">
-        <span class="msb-label">Income</span>
+        <span class="msb-label">{{ 'daily.income' | t }}</span>
         <span class="msb-val income">₹{{ monthIncome().toLocaleString() }}</span>
       </div>
       <div class="msb-divider"></div>
       <div class="msb-item">
-        <span class="msb-label">Spent</span>
+        <span class="msb-label">{{ 'daily.spent' | t }}</span>
         <span class="msb-val spent">₹{{ monthSpent().toLocaleString() }}</span>
       </div>
       <div class="msb-divider"></div>
       <div class="msb-item">
-        <span class="msb-label">Balance</span>
+        <span class="msb-label">{{ 'daily.balance' | t }}</span>
         <span class="msb-val" [class.income]="monthBalance() >= 0" [class.spent]="monthBalance() < 0">
           {{ monthBalance() < 0 ? '-' : '+' }}₹{{ Math.abs(monthBalance()).toLocaleString() }}
         </span>
@@ -196,7 +207,7 @@
               <span class="entry-amount" [class.income]="entry.entryType === 'INCOME'" [class.spent]="entry.entryType === 'EXPENSE'">
                 {{ entry.entryType === 'INCOME' ? '+' : '-' }}₹{{ entry.amount.toLocaleString() }}
               </span>
-              <button class="entry-delete" (click)="deleteEntry(entry.id)" title="Delete">🗑️</button>
+              <button class="entry-delete" (click)="deleteEntry(entry.id)" [title]="'common.delete' | t">🗑️</button>
             </div>
           </div>
         }
@@ -205,9 +216,9 @@
 
     <!-- Bottom bar -->
     <div class="bottom-bar">
-      <span>{{ monthEntries().length }} entries this month</span>
+      <span>{{ monthEntries().length }} {{ 'daily.entriesThisMonth' | t }}</span>
       <span [class.income]="monthBalance() >= 0" [class.spent]="monthBalance() < 0">
-        Balance: {{ monthBalance() < 0 ? '-' : '+' }}₹{{ Math.abs(monthBalance()).toLocaleString() }}
+        {{ 'daily.balance' | t }}: {{ monthBalance() < 0 ? '-' : '+' }}₹{{ Math.abs(monthBalance()).toLocaleString() }}
       </span>
     </div>
   }

@@ -1,60 +1,60 @@
 <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
   <div>
-    <h1>Expense</h1>
-    <p>Track and add your daily expenses.</p>
+    <h1>{{ 'expense.title' | t }}</h1>
+    <p>{{ 'expense.desc' | t }}</p>
   </div>
-  <button class="btn btn-primary" (click)="openModal()">+ Add Expense</button>
+  <button class="btn btn-primary" (click)="openModal()">{{ 'expense.addBtn' | t }}</button>
 </div>
 
 <div class="grid-3" style="margin-bottom: 24px;">
   <div class="stat-card">
-    <div class="stat-label">Today</div>
+    <div class="stat-label">{{ 'expense.today' | t }}</div>
     <div class="stat-value">₹{{ todayAmount().toLocaleString() }}</div>
-    <div class="stat-change negative">{{ filteredExpenses().length }} shown</div>
+    <div class="stat-change negative">{{ filteredExpenses().length }} {{ 'expense.shown' | t }}</div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">Total Expenses</div>
+    <div class="stat-label">{{ 'expense.totalExpenses' | t }}</div>
     <div class="stat-value">{{ expenses().length }}</div>
-    <div class="stat-change negative">all time</div>
+    <div class="stat-change negative">{{ 'expense.allTime' | t }}</div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">Filtered Total</div>
+    <div class="stat-label">{{ 'expense.filteredTotal' | t }}</div>
     <div class="stat-value">₹{{ totalAmount().toLocaleString() }}</div>
-    <div class="stat-change negative">{{ filteredExpenses().length }} records</div>
+    <div class="stat-change negative">{{ filteredExpenses().length }} {{ 'expense.records' | t }}</div>
   </div>
 </div>
 
 <div class="card">
   <div class="exp-table-header">
-    <h3>Expense Log</h3>
+    <h3>{{ 'expense.expenseLog' | t }}</h3>
     <div class="filters">
       <select class="filter-select" [(ngModel)]="filterCat" (ngModelChange)="filterCat.set($event)" [ngModel]="filterCat()">
-        <option value="All">All Categories</option>
+        <option value="All">{{ 'expense.allCategories' | t }}</option>
         @for (cat of budgetCategories(); track cat.category) {
           <option [value]="cat.category">{{ cat.icon }} {{ cat.category }}</option>
         }
       </select>
-      <input type="date" class="filter-date" [ngModel]="filterDate()" (ngModelChange)="filterDate.set($event)" />
+      <input type="date" class="filter-date" [ngModel]="filterDate()" (ngModelChange)="filterDate.set($event)" [max]="today" />
     </div>
   </div>
 
   @if (filteredExpenses().length === 0) {
     <div class="empty-state">
       <div class="empty-icon">💸</div>
-      <p>No expenses found. Add one using <strong>+ Add Expense</strong>.</p>
+      <p>{{ 'expense.noExpenses' | t }}</p>
     </div>
   } @else {
     <!-- Desktop table -->
     <table class="exp-table">
       <thead>
         <tr>
-          <th>Description</th>
-          <th>Category</th>
-          <th>Budget</th>
-          <th>Date</th>
-          <th>Payment</th>
-          <th>Amount</th>
-          <th>Actions</th>
+          <th>{{ 'expense.descHeader' | t }}</th>
+          <th>{{ 'expense.categoryHeader' | t }}</th>
+          <th>{{ 'expense.budgetHeader' | t }}</th>
+          <th>{{ 'expense.dateHeader' | t }}</th>
+          <th>{{ 'expense.paymentHeader' | t }}</th>
+          <th>{{ 'expense.amountHeader' | t }}</th>
+          <th>{{ 'expense.actionsHeader' | t }}</th>
         </tr>
       </thead>
       <tbody>
@@ -69,15 +69,15 @@
             <td><span class="badge badge-blue">{{ e.category }}</span></td>
             <td>
               <span class="badge" [class]="e.budgetType === 'weekly' ? 'badge-purple' : 'badge-green'">
-                {{ e.budgetType === 'weekly' ? '📆 Weekly' : '📅 Monthly' }}
+                {{ e.budgetType === 'weekly' ? ('common.weekly' | t) : ('common.monthly' | t) }}
               </span>
             </td>
             <td>{{ e.date }}</td>
             <td>{{ e.payment }}</td>
             <td class="exp-amount">-₹{{ e.amount.toLocaleString() }}</td>
             <td class="exp-actions">
-              <button class="action-btn edit-btn" (click)="openEditModal(e)" title="Edit">✏️</button>
-              <button class="action-btn delete-btn" (click)="deleteExpense(e)" title="Delete">🗑️</button>
+              <button class="action-btn edit-btn" (click)="openEditModal(e)" [title]="'common.edit' | t">✏️</button>
+              <button class="action-btn delete-btn" (click)="deleteExpense(e)" [title]="'common.delete' | t">🗑️</button>
             </td>
           </tr>
         }
@@ -99,13 +99,15 @@
             <div class="exp-card-amount">-₹{{ e.amount.toLocaleString() }}</div>
           </div>
           <div class="exp-card-bottom">
-            <span class="badge badge-blue">{{ e.category }}</span>
-            <span class="badge" [class]="e.budgetType === 'weekly' ? 'badge-purple' : 'badge-green'">
-              {{ e.budgetType === 'weekly' ? '📆 Weekly' : '📅 Monthly' }}
-            </span>
+            <div class="exp-card-badges">
+              <span class="badge badge-blue">{{ e.category }}</span>
+              <span class="badge" [class]="e.budgetType === 'weekly' ? 'badge-purple' : 'badge-green'">
+                {{ e.budgetType === 'weekly' ? ('common.weekly' | t) : ('common.monthly' | t) }}
+              </span>
+            </div>
             <div class="exp-card-actions">
-              <button class="action-btn edit-btn" (click)="openEditModal(e)" title="Edit">✏️ Edit</button>
-              <button class="action-btn delete-btn" (click)="deleteExpense(e)" title="Delete">🗑️ Delete</button>
+              <button class="action-btn edit-btn" (click)="openEditModal(e)">✏️ {{ 'common.edit' | t }}</button>
+              <button class="action-btn delete-btn" (click)="deleteExpense(e)">🗑️ {{ 'common.delete' | t }}</button>
             </div>
           </div>
         </div>
@@ -119,7 +121,7 @@
   <div class="modal-backdrop" (click)="closeModal()">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>{{ editMode() ? 'Edit Expense' : 'Add Expense' }}</h2>
+        <h2>{{ editMode() ? ('expense.editExpense' | t) : ('expense.addExpense' | t) }}</h2>
         <button class="modal-close" (click)="closeModal()">✕</button>
       </div>
 
@@ -131,11 +133,11 @@
         <div class="modal-grid">
           <!-- Description -->
           <div class="modal-field full">
-            <label class="modal-label">Description</label>
+            <label class="modal-label">{{ 'expense.descLabel' | t }}</label>
             <input
               class="modal-input"
               type="text"
-              placeholder="e.g. Zomato Order, Metro Recharge..."
+              [placeholder]="'expense.descPlaceholder' | t"
               [(ngModel)]="form.description"
               name="description"
             />
@@ -143,10 +145,10 @@
 
           <!-- Category -->
           <div class="modal-field">
-            <label class="modal-label">Category</label>
+            <label class="modal-label">{{ 'expense.categoryLabel' | t }}</label>
             @if (budgetCategories().length === 0) {
               <div class="no-budgets-hint">
-                ⚠️ No budgets yet. <a routerLink="/budgets">Create a budget</a> first to add expenses.
+                ⚠️ {{ 'expense.noBudgetsHint' | t }} <a routerLink="/budgets">{{ 'expense.createBudget' | t }}</a>
               </div>
             } @else {
               <select
@@ -164,7 +166,7 @@
 
           <!-- Amount -->
           <div class="modal-field">
-            <label class="modal-label">Amount (₹)</label>
+            <label class="modal-label">{{ 'expense.amountLabel' | t }}</label>
             <div class="modal-input-wrap">
               <span class="modal-prefix">₹</span>
               <input
@@ -180,7 +182,7 @@
 
           <!-- Payment method -->
           <div class="modal-field">
-            <label class="modal-label">Payment Method</label>
+            <label class="modal-label">{{ 'expense.paymentLabel' | t }}</label>
             <select class="modal-input" [(ngModel)]="form.payment" name="payment">
               @for (p of payments; track p) {
                 <option [value]="p">{{ p }}</option>
@@ -190,18 +192,19 @@
 
           <!-- Date -->
           <div class="modal-field">
-            <label class="modal-label">Date</label>
+            <label class="modal-label">{{ 'expense.dateLabel' | t }}</label>
             <input
               class="modal-input"
               type="date"
               [(ngModel)]="form.date"
               name="date"
+              [max]="today"
             />
           </div>
 
           <!-- Budget Type -->
           <div class="modal-field full">
-            <label class="modal-label">Charge to Budget</label>
+            <label class="modal-label">{{ 'expense.chargeTo' | t }}</label>
             <div class="budget-type-toggle">
               <button
                 type="button"
@@ -209,7 +212,7 @@
                 [class.selected]="form.budgetType === 'monthly'"
                 (click)="form.budgetType = 'monthly'"
               >
-                📅 Monthly
+                📅 {{ 'common.monthly' | t }}
               </button>
               <button
                 type="button"
@@ -217,18 +220,18 @@
                 [class.selected]="form.budgetType === 'weekly'"
                 (click)="form.budgetType = 'weekly'"
               >
-                📆 Weekly
+                📆 {{ 'common.weekly' | t }}
               </button>
             </div>
           </div>
 
           <!-- Preview icon -->
           <div class="modal-field icon-preview-wrap">
-            <label class="modal-label">Preview</label>
+            <label class="modal-label">{{ 'expense.preview' | t }}</label>
             <div class="icon-preview">
               <span class="preview-icon">{{ form.icon }}</span>
               <div>
-                <div class="preview-desc">{{ form.description || 'Your expense' }}</div>
+                <div class="preview-desc">{{ form.description || ('expense.yourExpense' | t) }}</div>
                 <div class="preview-cat">{{ form.category }}</div>
               </div>
               <span class="preview-amt">-₹{{ (form.amount || 0).toLocaleString() }}</span>
@@ -237,9 +240,9 @@
         </div>
 
         <div class="modal-actions">
-          <button type="button" class="btn btn-outline" (click)="closeModal()" [disabled]="saving()">Cancel</button>
+          <button type="button" class="btn btn-outline" (click)="closeModal()" [disabled]="saving()">{{ 'common.cancel' | t }}</button>
           <button type="submit" class="btn btn-primary" [disabled]="saving()">
-            {{ saving() ? 'Saving...' : editMode() ? 'Save Changes' : 'Add Expense' }}
+            {{ saving() ? ('common.saving' | t) : editMode() ? ('expense.saveChanges' | t) : ('expense.addExpense' | t) }}
           </button>
         </div>
       </form>

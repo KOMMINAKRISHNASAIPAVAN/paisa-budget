@@ -47,6 +47,20 @@ export class AuthService {
     }
   }
 
+  async updateName(name: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+      const res: any = await firstValueFrom(
+        this.http.put(`${environment.apiUrl}/api/auth/update-name`, { name },
+          { headers: { Authorization: `Bearer ${this.getToken()}` } })
+      );
+      // Update token + session from backend response
+      this.saveSession(res.token, { id: res.id, name: res.name, phone: res.phone });
+      return { ok: true };
+    } catch (err: any) {
+      return { ok: false, error: err?.error?.message ?? 'Failed to update name.' };
+    }
+  }
+
   logout() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(SESSION_KEY);

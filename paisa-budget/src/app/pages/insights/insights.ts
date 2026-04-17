@@ -1,5 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
+import { Location } from '@angular/common';
 import { DataService } from '../../services/data.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 const CAT_COLORS = [
   '#4f6ef7', '#10b981', '#f59e0b', '#ef4444',
@@ -11,12 +13,13 @@ const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun',
 
 @Component({
   selector: 'app-insights',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './insights.html',
   styleUrl: './insights.scss',
 })
 export class Insights {
-  Math = Math;
+  Math     = Math;
+  location = inject(Location);
   private data = inject(DataService);
 
   hasData = computed(() => this.data.expenses().length > 0);

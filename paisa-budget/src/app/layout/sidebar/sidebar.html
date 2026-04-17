@@ -10,7 +10,7 @@
       <li>
         <a [routerLink]="item.route" routerLinkActive="active" class="nav-item">
           <span class="nav-icon">{{ item.icon }}</span>
-          <span class="nav-label">{{ item.label }}</span>
+          <span class="nav-label">{{ item.key | t }}</span>
         </a>
       </li>
     }
@@ -36,7 +36,7 @@
   </div>
   <button class="logout-btn-mobile" (click)="auth.logout()">
     <span class="logout-icon">🚪</span>
-    <span class="logout-text">Logout</span>
+    <span class="logout-text">{{ 'nav.logout' | t }}</span>
   </button>
 </header>
 
@@ -45,7 +45,7 @@
   @for (item of navItems; track item.route) {
     <a [routerLink]="item.route" routerLinkActive="active" class="bottom-nav-item">
       <span class="bottom-nav-icon">{{ item.icon }}</span>
-      <span class="bottom-nav-label">{{ item.label }}</span>
+      <span class="bottom-nav-label">{{ item.key | t }}</span>
     </a>
   }
 </nav>

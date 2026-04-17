@@ -1,10 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })
@@ -12,12 +13,10 @@ export class Sidebar {
   auth = inject(AuthService);
 
   navItems = [
-    { label: 'Dashboard',    icon: '🏠', route: '/dashboard' },
-    { label: 'Budgets',      icon: '💰', route: '/budgets' },
-    { label: 'Expense',      icon: '💸', route: '/expense' },
-    { label: 'Daily Tracker',icon: '📓', route: '/daily' },
-    { label: 'Transactions', icon: '🔄', route: '/transactions' },
-    { label: 'Insights',     icon: '📊', route: '/insights' },
-    { label: 'Profile',      icon: '👤', route: '/profile' },
+    { key: 'nav.dashboard', icon: '🏠', route: '/dashboard' },
+    { key: 'nav.budgets',   icon: '💰', route: '/budgets' },
+    { key: 'nav.expense',   icon: '💸', route: '/expense' },
+    { key: 'nav.daily',     icon: '📓', route: '/daily' },
+    { key: 'nav.profile',   icon: '👤', route: '/profile' },
   ];
 }

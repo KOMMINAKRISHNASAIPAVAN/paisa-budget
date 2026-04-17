@@ -7,12 +7,12 @@
       <span class="brand-icon">💹</span>
       <span class="brand-name">Paisa Budget</span>
     </div>
-    <h2 class="auth-tagline">Your money.<br>Your rules.<br>Your future.</h2>
-    <p class="auth-sub">Join thousands managing their finances smarter with Paisa.</p>
+    <h2 class="auth-tagline">{{ 'register.tagline' | t }}</h2>
+    <p class="auth-sub">{{ 'register.sub' | t }}</p>
     <div class="auth-features">
-      <div class="feat-item"><span>✅</span> Free to use</div>
-      <div class="feat-item"><span>✅</span> Secure & Private</div>
-      <div class="feat-item"><span>✅</span> Works offline</div>
+      <div class="feat-item"><span>✅</span> {{ 'register.feat1' | t }}</div>
+      <div class="feat-item"><span>✅</span> {{ 'register.feat2' | t }}</div>
+      <div class="feat-item"><span>✅</span> {{ 'register.feat3' | t }}</div>
     </div>
   </div>
 
@@ -20,8 +20,8 @@
   <div class="auth-right">
     <div class="auth-card">
       <div class="auth-card-brand"><span>💹</span> Paisa</div>
-      <h1 class="auth-title">Create account</h1>
-      <p class="auth-hint">Start your savings journey today</p>
+      <h1 class="auth-title">{{ 'register.title' | t }}</h1>
+      <p class="auth-hint">{{ 'register.hint' | t }}</p>
 
       @if (error()) { <div class="auth-error">⚠️ {{ error() }}</div> }
 
@@ -29,10 +29,10 @@
 
         <!-- Full Name -->
         <div class="field-group">
-          <label class="field-label">Full Name</label>
+          <label class="field-label">{{ 'register.nameLabel' | t }}</label>
           <div class="input-wrap" [class.input-error]="touchedName() && !nameValid()" [class.input-ok]="touchedName() && nameValid()">
             <span class="input-icon">👤</span>
-            <input class="field-input" type="text" placeholder="Full Name"
+            <input class="field-input" type="text" [placeholder]="'register.namePlaceholder' | t"
               [ngModel]="name()" (ngModelChange)="name.set($event)" name="name" autocomplete="name"
               (blur)="touchedName.set(true)" />
             @if (touchedName() && nameValid()) { <span class="input-check">✓</span> }
@@ -44,10 +44,10 @@
 
         <!-- Phone -->
         <div class="field-group">
-          <label class="field-label">Phone Number</label>
+          <label class="field-label">{{ 'register.phoneLabel' | t }}</label>
           <div class="input-wrap" [class.input-error]="touchedPhone() && !phoneValid()" [class.input-ok]="touchedPhone() && phoneValid()">
             <span class="input-prefix">🇮🇳 +91</span>
-            <input class="field-input" type="tel" placeholder="Mobile Number"
+            <input class="field-input" type="tel" [placeholder]="'register.phonePlaceholder' | t"
               maxlength="10" [ngModel]="phone()" name="phone" autocomplete="tel"
               (ngModelChange)="onPhoneInput($event)"
               (blur)="touchedPhone.set(true)" />
@@ -57,16 +57,16 @@
             <span class="field-hint error">{{ phoneError() }}</span>
           }
           @if (touchedPhone() && phoneValid()) {
-            <span class="field-hint success">✓ Valid Indian mobile number</span>
+            <span class="field-hint success">✓ {{ 'register.validPhone' | t }}</span>
           }
         </div>
 
         <!-- Password -->
         <div class="field-group">
-          <label class="field-label">Password</label>
+          <label class="field-label">{{ 'register.passwordLabel' | t }}</label>
           <div class="input-wrap" [class.input-error]="touchedPass() && !passValid()" [class.input-ok]="touchedPass() && passValid()">
             <input class="field-input" [type]="showPass() ? 'text' : 'password'"
-              placeholder="Min. 8 characters" [ngModel]="password()" (ngModelChange)="password.set($event)"
+              [placeholder]="'register.passwordPlaceholder' | t" [ngModel]="password()" (ngModelChange)="password.set($event)"
               name="password" autocomplete="new-password"
               (blur)="touchedPass.set(true)" />
             <button type="button" class="eye-btn" (click)="showPass.set(!showPass())">
@@ -92,10 +92,10 @@
 
         <!-- Confirm Password -->
         <div class="field-group">
-          <label class="field-label">Confirm Password</label>
+          <label class="field-label">{{ 'register.confirmLabel' | t }}</label>
           <div class="input-wrap" [class.input-error]="touchedConfirm() && confirmPass().length > 0 && !confirmValid()" [class.input-ok]="touchedConfirm() && confirmValid()">
             <input class="field-input" [type]="showConfirm() ? 'text' : 'password'"
-              placeholder="Re-enter password" [ngModel]="confirmPass()" (ngModelChange)="confirmPass.set($event)"
+              [placeholder]="'register.confirmPlaceholder' | t" [ngModel]="confirmPass()" (ngModelChange)="confirmPass.set($event)"
               name="confirmPass" autocomplete="new-password"
               (blur)="touchedConfirm.set(true)" />
             <button type="button" class="eye-btn" (click)="showConfirm.set(!showConfirm())">
@@ -103,19 +103,19 @@
             </button>
           </div>
           @if (confirmPass().length > 0 && !confirmValid()) {
-            <span class="field-hint error">Passwords don't match.</span>
+            <span class="field-hint error">{{ 'register.noMatch' | t }}</span>
           }
           @if (confirmValid()) {
-            <span class="field-hint success">✓ Passwords match</span>
+            <span class="field-hint success">✓ {{ 'register.match' | t }}</span>
           }
         </div>
 
         <button class="auth-btn" type="submit" [disabled]="loading()">
-          @if (loading()) { Creating account… } @else { Create Account }
+          @if (loading()) { {{ 'register.creating' | t }} } @else { {{ 'register.createBtn' | t }} }
         </button>
       </form>
 
-      <p class="auth-switch">Already have an account? <a routerLink="/login">Login</a></p>
+      <p class="auth-switch">{{ 'register.hasAccount' | t }} <a routerLink="/login">{{ 'register.loginLink' | t }}</a></p>
     </div>
   </div>
 

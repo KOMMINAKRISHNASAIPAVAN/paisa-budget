@@ -1,48 +1,48 @@
 <div class="page-header">
-  <h1>Dashboard</h1>
-  <p>Your financial snapshot at a glance.</p>
+  <h1>{{ 'dashboard.title' | t }}</h1>
+  <p>{{ 'dashboard.desc' | t }}</p>
 </div>
 
 <div class="grid-4" style="margin-bottom: 24px;">
   <div class="stat-card">
-    <div class="stat-label">Total Budget</div>
+    <div class="stat-label">{{ 'dashboard.totalBudget' | t }}</div>
     <div class="stat-value">₹{{ totalBudget().toLocaleString() }}</div>
     <div class="stat-change" [style.color]="totalBudget() > 0 ? '#10b981' : '#9ca3af'">
-      {{ totalBudget() > 0 ? 'Active budgets' : 'No budgets yet' }}
+      {{ totalBudget() > 0 ? ('dashboard.activeBudgets' | t) : ('dashboard.noBudgets' | t) }}
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">Monthly Expense</div>
+    <div class="stat-label">{{ 'dashboard.monthlyExpense' | t }}</div>
     <div class="stat-value">₹{{ monthlyExpense().toLocaleString() }}</div>
     <div class="stat-change" [class.negative]="monthlyExpense() > 0" [style.color]="monthlyExpense() === 0 ? '#9ca3af' : ''">
-      {{ monthlyExpense() > 0 ? 'This month' : 'No expenses yet' }}
+      {{ monthlyExpense() > 0 ? ('dashboard.thisMonth' | t) : ('dashboard.noExpenses' | t) }}
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">Remaining Budget</div>
-    <div class="stat-value" [style.color]="totalSavings() < 0 ? '#ef4444' : 'inherit'">
+    <div class="stat-label">{{ 'dashboard.remaining' | t }}</div>
+    <div class="stat-value" [style.color]="totalSavings() < 0 ? 'var(--danger)' : 'inherit'">
       ₹{{ totalSavings().toLocaleString() }}
     </div>
     <div class="stat-change" [class.positive]="totalSavings() > 0" [class.negative]="totalSavings() < 0">
-      {{ totalSavings() > 0 ? 'Under budget' : totalSavings() < 0 ? 'Over budget' : '—' }}
+      {{ totalSavings() > 0 ? ('dashboard.underBudget' | t) : totalSavings() < 0 ? ('dashboard.overBudget' | t) : '—' }}
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">Total Expenses</div>
+    <div class="stat-label">{{ 'dashboard.totalExpenses' | t }}</div>
     <div class="stat-value">{{ recentTransactions().length }}</div>
-    <div class="stat-change" [style.color]="recentTransactions().length > 0 ? '#6b7280' : '#9ca3af'">
-      {{ recentTransactions().length > 0 ? 'Recent records' : 'No entries yet' }}
+    <div class="stat-change" [style.color]="recentTransactions().length > 0 ? 'var(--text-muted)' : 'var(--text-muted)'">
+      {{ recentTransactions().length > 0 ? ('dashboard.recentRecords' | t) : ('dashboard.noEntries' | t) }}
     </div>
   </div>
 </div>
 
 <div class="grid-2" style="margin-bottom: 24px;">
   <div class="card">
-    <h3 style="margin-bottom: 18px; font-size: 16px;">Budget Progress</h3>
+    <h3 style="margin-bottom: 18px; font-size: 16px;">{{ 'dashboard.budgetProgress' | t }}</h3>
     @if (budgets().length === 0) {
       <div class="dash-empty">
         <span>💰</span>
-        <p>No budgets created yet.<br>Go to <strong>Budgets</strong> to set one up.</p>
+        <p>{{ 'dashboard.noBudgetsMsg' | t }}</p>
       </div>
     } @else {
       @for (b of budgets(); track b.id) {
@@ -54,7 +54,7 @@
           <div class="progress-bar">
             <div class="progress-fill"
                  [style.width.%]="Math.min((b.spent / b.limit) * 100, 100)"
-                 [style.background]="b.spent > b.limit ? '#ef4444' : '#4f6ef7'">
+                 [style.background]="b.spent > b.limit ? 'var(--danger)' : 'var(--accent)'">
             </div>
           </div>
         </div>
@@ -63,11 +63,11 @@
   </div>
 
   <div class="card">
-    <h3 style="margin-bottom: 18px; font-size: 16px;">Recent Expenses</h3>
+    <h3 style="margin-bottom: 18px; font-size: 16px;">{{ 'dashboard.recentExpenses' | t }}</h3>
     @if (recentTransactions().length === 0) {
       <div class="dash-empty">
         <span>🔄</span>
-        <p>No expenses yet.<br>Go to <strong>Expense</strong> to add one.</p>
+        <p>{{ 'dashboard.noExpensesMsg' | t }}</p>
       </div>
     } @else {
       @for (tx of recentTransactions(); track tx.id) {

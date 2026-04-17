@@ -1,9 +1,10 @@
 import { Component, computed, inject } from '@angular/core';
 import { DataService } from '../../services/data.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

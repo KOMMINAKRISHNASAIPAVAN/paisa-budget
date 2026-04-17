@@ -13,3 +13,6 @@ backend/*.jar
 *.bat
 electron-app/
 *.log
+
+# Local Netlify folder
+.netlify

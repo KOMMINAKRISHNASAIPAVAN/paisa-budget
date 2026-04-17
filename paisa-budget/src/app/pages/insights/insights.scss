@@ -13,7 +13,7 @@
   padding: 28px 0;
 
   span { font-size: 34px; display: block; margin-bottom: 10px; }
-  p    { font-size: 13px; color: #9ca3af; line-height: 1.6; }
+  p    { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
 }
 
 .cat-row {
@@ -27,7 +27,7 @@
   .cat-name {
     width: 80px;
     font-size: 12px;
-    color: #374151;
+    color: var(--text-tertiary);
     flex-shrink: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -36,14 +36,14 @@
     @media (max-width: 480px) { width: 65px; font-size: 11px; }
   }
 
-  .cat-bar-wrap { flex: 1; height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
+  .cat-bar-wrap { flex: 1; height: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
   .cat-bar      { height: 100%; border-radius: 999px; transition: width 0.4s ease; }
 
   .cat-pct {
     width: 32px;
     text-align: right;
     font-size: 11px;
-    color: #6b7280;
+    color: var(--text-secondary);
     flex-shrink: 0;
   }
 
@@ -52,7 +52,7 @@
     text-align: right;
     font-size: 12px;
     font-weight: 600;
-    color: #1a1f3c;
+    color: var(--text-primary);
     flex-shrink: 0;
 
     @media (max-width: 480px) { width: 58px; font-size: 11px; }
@@ -78,16 +78,16 @@
 
   .trend-bar {
     width: 100%;
-    background: #e5e7eb;
+    background: rgba(255,255,255,0.1);
     border-radius: 6px 6px 0 0;
     min-height: 4px;
     transition: height 0.4s ease;
 
-    &.active-month { background: #4f6ef7; }
+    &.active-month { background: var(--accent); }
   }
 
-  .trend-label { font-size: 10px; color: #6b7280; margin-top: 5px; }
-  .trend-val   { font-size: 9px;  color: #9ca3af; margin-top: 2px; }
+  .trend-label { font-size: 10px; color: var(--text-secondary); margin-top: 5px; }
+  .trend-val   { font-size: 9px;  color: var(--text-muted); margin-top: 2px; }
 }
 
 .tips-grid {
@@ -102,11 +102,11 @@
   display: flex;
   gap: 12px;
   padding: 14px;
-  background: #f8f9ff;
+  background: var(--bg-muted);
   border-radius: 12px;
-  border: 1px solid #e8ecff;
+  border: 1px solid var(--border-medium);
 
   .tip-icon  { font-size: 22px; flex-shrink: 0; }
-  .tip-title { font-size: 13px; font-weight: 600; color: #1a1f3c; margin-bottom: 4px; }
-  .tip-text  { font-size: 12px; color: #6b7280; line-height: 1.5; }
+  .tip-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+  .tip-text  { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
 }
