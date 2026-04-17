@@ -1,7 +1,8 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './guards/auth.guard';
-import { Login }        from './pages/login/login';
-import { Register }     from './pages/register/register';
+import { Login }           from './pages/login/login';
+import { Register }        from './pages/register/register';
+import { ForgotPassword }  from './pages/forgot-password/forgot-password';
 import { Dashboard }    from './pages/dashboard/dashboard';
 import { Budgets }      from './pages/budgets/budgets';
 import { Expense }      from './pages/expense/expense';
@@ -12,8 +13,9 @@ import { Daily }        from './pages/daily/daily';
 
 export const routes: Routes = [
   { path: '',           redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login',      component: Login,        canActivate: [guestGuard] },
-  { path: 'register',   component: Register,     canActivate: [guestGuard] },
+  { path: 'login',            component: Login,           canActivate: [guestGuard] },
+  { path: 'register',         component: Register,        canActivate: [guestGuard] },
+  { path: 'forgot-password',  component: ForgotPassword,  canActivate: [guestGuard] },
   { path: 'dashboard',  component: Dashboard,    canActivate: [authGuard] },
   { path: 'budgets',    component: Budgets,      canActivate: [authGuard] },
   { path: 'expense',    component: Expense,      canActivate: [authGuard] },

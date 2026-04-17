@@ -47,6 +47,10 @@
           </div>
         </div>
 
+        <div class="fp-link-row">
+          <a routerLink="/forgot-password" class="fp-link">Forgot password?</a>
+        </div>
+
         <button class="auth-btn" type="submit" [disabled]="loading()">
           @if (loading()) { {{ 'login.loggingIn' | t }} } @else { {{ 'login.loginBtn' | t }} }
         </button>
@@ -101,6 +105,10 @@
             {{ showPass() ? '🙈' : '👁️' }}
           </button>
         </div>
+      </div>
+
+      <div class="fp-link-row">
+        <a routerLink="/forgot-password" class="fp-link">Forgot password?</a>
       </div>
 
       <button class="mobile-btn" type="submit" [disabled]="loading()">
