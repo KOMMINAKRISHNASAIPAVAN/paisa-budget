@@ -31,7 +31,7 @@ export class App {
 
   showShell = computed(() => {
     const url = this.url() ?? '';
-    return !url.startsWith('/login') && !url.startsWith('/register');
+    return !url.startsWith('/login') && !url.startsWith('/register') && !url.startsWith('/forgot-password');
   });
 
   constructor() {
