@@ -1,21 +1,27 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { DataService, ExpenseItem, DailyEntry } from '../../services/data.service';
 import { AuthService } from '../../services/auth';
+import { ThemeService } from '../../services/theme.service';
+import { LanguageService } from '../../services/language.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const CAT_COLORS   = ['#4f6ef7','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16'];
 
 @Component({
   selector: 'app-profile',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink, TranslatePipe],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
 export class Profile {
-  Math = Math;
-  private data = inject(DataService);
-  auth         = inject(AuthService);
+  Math     = Math;
+  private data  = inject(DataService);
+  auth          = inject(AuthService);
+  theme         = inject(ThemeService);
+  lang          = inject(LanguageService);
 
   initials = computed(() => {
     const name = this.auth.currentUser()?.name ?? '';
@@ -40,6 +46,37 @@ export class Profile {
 
   showHistory      = signal(false);
   showDailyHistory = signal(false);
+
+  // ── Name editing ────────────────────────────────────────────
+  editingName = signal(false);
+  newName     = signal('');
+  nameSaving  = signal(false);
+  nameError   = signal('');
+
+  startEditName() {
+    this.newName.set(this.auth.currentUser()?.name ?? '');
+    this.nameError.set('');
+    this.editingName.set(true);
+  }
+
+  cancelEditName() {
+    this.editingName.set(false);
+    this.nameError.set('');
+  }
+
+  async saveName() {
+    const name = this.newName().trim();
+    if (!name) { this.nameError.set('Name cannot be empty.'); return; }
+    this.nameSaving.set(true);
+    const result = await this.auth.updateName(name);
+    this.nameSaving.set(false);
+    if (result.ok) {
+      this.editingName.set(false);
+      this.nameError.set('');
+    } else {
+      this.nameError.set(result.error ?? 'Failed to update name.');
+    }
+  }
 
   // ── Available months (last 12) ──────────────────────────────
   availableMonths = computed(() => {

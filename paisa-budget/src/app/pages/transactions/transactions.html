@@ -1,6 +1,13 @@
 <div class="page-header">
-  <h1>Transactions</h1>
-  <p>Complete history of all your money movements.</p>
+  <div class="page-header-row">
+    <button class="back-btn" (click)="location.back()">
+      <span>‹</span> {{ 'common.back' | t }}
+    </button>
+    <div>
+      <h1>{{ 'transactions.title' | t }}</h1>
+      <p>{{ 'transactions.desc' | t }}</p>
+    </div>
+  </div>
 </div>
 
 <!-- Budget Summary Strip -->
@@ -8,21 +15,21 @@
   <div class="summary-card">
     <div class="summary-icon">💰</div>
     <div class="summary-body">
-      <div class="summary-label">Total Budget</div>
+      <div class="summary-label">{{ 'transactions.totalBudget' | t }}</div>
       <div class="summary-value">₹{{ totalBudget().toLocaleString() }}</div>
     </div>
   </div>
   <div class="summary-card">
     <div class="summary-icon">💸</div>
     <div class="summary-body">
-      <div class="summary-label">Total Spent</div>
+      <div class="summary-label">{{ 'transactions.totalSpent' | t }}</div>
       <div class="summary-value spent">₹{{ totalSpent().toLocaleString() }}</div>
     </div>
   </div>
   <div class="summary-card">
     <div class="summary-icon">{{ remainingBudget() >= 0 ? '✅' : '⚠️' }}</div>
     <div class="summary-body">
-      <div class="summary-label">Remaining</div>
+      <div class="summary-label">{{ 'transactions.remaining' | t }}</div>
       <div class="summary-value" [class.positive]="remainingBudget() >= 0" [class.negative]="remainingBudget() < 0">
         ₹{{ remainingBudget() < 0 ? '-' : '' }}{{ Math.abs(remainingBudget()).toLocaleString() }}
       </div>
@@ -31,7 +38,7 @@
   <div class="summary-card">
     <div class="summary-icon">📋</div>
     <div class="summary-body">
-      <div class="summary-label">Active Budgets</div>
+      <div class="summary-label">{{ 'transactions.activeBudgets' | t }}</div>
       <div class="summary-value">
         {{ activeBudgetCount() }}
         @if (overBudgetCount() > 0) {
@@ -42,35 +49,40 @@
   </div>
 </div>
 
+<!-- Filters -->
 <div class="tx-controls card" style="margin-bottom: 20px; padding: 16px 20px;">
-  <input class="search-box" type="text" placeholder="Search transactions..." />
+  <input
+    class="search-box"
+    type="text"
+    [placeholder]="'transactions.searchPlaceholder' | t"
+    [ngModel]="searchText()"
+    (ngModelChange)="searchText.set($event)"
+  />
   <div class="tx-filters">
-    <select class="filter-select">
-      <option>All Types</option>
-      <option>Credit</option>
-      <option>Debit</option>
-    </select>
-    <select class="filter-select">
-      <option>This Month</option>
-      <option>Last Month</option>
-      <option>Last 3 Months</option>
-    </select>
-    <select class="filter-select">
-      <option>All Accounts</option>
-      <option>Savings</option>
-      <option>Current</option>
+    <select class="filter-select" [ngModel]="filterMonth()" (ngModelChange)="filterMonth.set($event)">
+      <option value="all">{{ 'transactions.allMonths' | t }}</option>
+      @for (m of availableMonths(); track m.value) {
+        <option [value]="m.value">{{ m.label }}</option>
+      }
     </select>
   </div>
 </div>
 
+<!-- Results count -->
+@if (filteredCount() > 0) {
+  <div style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
+    {{ filteredCount() }} {{ 'transactions.results' | t }}
+  </div>
+}
+
 <div class="card">
-  @if (groupedTransactions().length === 0) {
+  @if (filteredGrouped().length === 0) {
     <div class="empty-state">
       <div class="empty-icon">🔄</div>
-      <p>No transactions yet.<br>Add expenses from the <strong>Expense</strong> page to see them here.</p>
+      <p>{{ 'transactions.noTransactions' | t }}</p>
     </div>
   } @else {
-    @for (group of groupedTransactions(); track group.date) {
+    @for (group of filteredGrouped(); track group.date) {
       <div class="tx-group">
         <div class="tx-group-date">{{ group.date }}</div>
         @for (tx of group.items; track tx.id) {
@@ -83,7 +95,7 @@
             <div class="tx-right">
               <div class="tx-amt debit">-₹{{ tx.amount.toLocaleString() }}</div>
               <div class="tx-status">
-                <span class="badge badge-green">Completed</span>
+                <span class="badge badge-green">{{ 'transactions.completed' | t }}</span>
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 <div class="page-header">
-  <h1>Profile</h1>
-  <p>Manage your personal and financial settings.</p>
+  <h1>{{ 'profile.title' | t }}</h1>
+  <p>{{ 'profile.desc' | t }}</p>
 </div>
 
 <div class="profile-layout">
@@ -14,11 +14,11 @@
     <div class="profile-stats">
       <div class="ps-item">
         <div class="ps-val">{{ savingsRate() }}%</div>
-        <div class="ps-lbl">Savings Rate</div>
+        <div class="ps-lbl">{{ 'profile.savingsRate' | t }}</div>
       </div>
       <div class="ps-item">
         <div class="ps-val">{{ totalBudgets() }}</div>
-        <div class="ps-lbl">Budgets</div>
+        <div class="ps-lbl">{{ 'profile.budgets' | t }}</div>
       </div>
     </div>
   </div>
@@ -26,24 +26,101 @@
   <div class="profile-main">
 
     <div class="card" style="margin-bottom: 20px;">
-      <h3 style="font-size: 16px; margin-bottom: 20px;">Personal Information</h3>
+      <h3 style="font-size: 16px; margin-bottom: 20px;">{{ 'profile.personalInfo' | t }}</h3>
       <div class="form-grid">
         <div class="form-group">
-          <label>Full Name</label>
-          <input type="text" class="form-input" [value]="auth.currentUser()?.name ?? ''" readonly />
+          <label>{{ 'profile.fullName' | t }}</label>
+          @if (editingName()) {
+            <div class="name-edit-wrap">
+              <input
+                type="text"
+                class="form-input"
+                [ngModel]="newName()"
+                (ngModelChange)="newName.set($event)"
+                name="newName"
+                placeholder="Enter your name"
+                [disabled]="nameSaving()"
+              />
+              @if (nameError()) {
+                <div class="name-error">{{ nameError() }}</div>
+              }
+              <div class="name-edit-actions">
+                <button class="btn btn-primary name-save-btn" (click)="saveName()" [disabled]="nameSaving()">
+                  {{ nameSaving() ? ('common.saving' | t) : ('common.save' | t) }}
+                </button>
+                <button class="btn btn-outline name-cancel-btn" (click)="cancelEditName()" [disabled]="nameSaving()">
+                  {{ 'common.cancel' | t }}
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="name-display-wrap">
+              <input type="text" class="form-input" [value]="auth.currentUser()?.name ?? ''" readonly />
+              <button class="name-edit-btn" (click)="startEditName()">✏️ {{ 'common.edit' | t }}</button>
+            </div>
+          }
         </div>
         <div class="form-group">
-          <label>Phone</label>
+          <label>{{ 'profile.phone' | t }}</label>
           <input type="tel" class="form-input" [value]="auth.currentUser()?.phone ?? ''" readonly />
         </div>
         <div class="form-group">
-          <label>Currency</label>
+          <label>{{ 'profile.currency' | t }}</label>
           <select class="form-input">
             <option selected>INR (₹)</option>
             <option>USD ($)</option>
             <option>EUR (€)</option>
           </select>
         </div>
+      </div>
+    </div>
+
+    <!-- ── Appearance ────────────────────────────────────────── -->
+    <div class="card appearance-card" style="margin-bottom: 20px;">
+      <h3 class="appearance-title">{{ 'profile.appearance' | t }}</h3>
+      <div class="theme-options">
+        <button class="theme-btn" [class.selected]="theme.isDark()" (click)="theme.setDark(true)">
+          🌙 {{ 'profile.dark' | t }}
+        </button>
+        <button class="theme-btn" [class.selected]="!theme.isDark()" (click)="theme.setDark(false)">
+          ☀️ {{ 'profile.light' | t }}
+        </button>
+      </div>
+
+      <h3 class="appearance-title" style="margin-top: 20px;">{{ 'profile.language' | t }}</h3>
+      <div class="theme-options">
+        <button class="theme-btn" [class.selected]="lang.lang() === 'en'" (click)="lang.setLang('en')">
+          🇬🇧 English
+        </button>
+        <button class="theme-btn" [class.selected]="lang.lang() === 'hi'" (click)="lang.setLang('hi')">
+          🇮🇳 हिन्दी
+        </button>
+        <button class="theme-btn" [class.selected]="lang.lang() === 'te'" (click)="lang.setLang('te')">
+          🏳️ తెలుగు
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Quick Links ──────────────────────────────────────── -->
+    <div class="card" style="margin-bottom: 20px;">
+      <h3 class="appearance-title">{{ 'profile.more' | t }}</h3>
+      <div class="quick-links">
+        <a routerLink="/transactions" class="quick-link-btn">
+          <span class="ql-icon">🔄</span>
+          <div class="ql-body">
+            <div class="ql-title">{{ 'nav.transactions' | t }}</div>
+            <div class="ql-sub">{{ 'profile.txDesc' | t }}</div>
+          </div>
+          <span class="ql-arrow">›</span>
+        </a>
+        <a routerLink="/insights" class="quick-link-btn">
+          <span class="ql-icon">📊</span>
+          <div class="ql-body">
+            <div class="ql-title">{{ 'nav.insights' | t }}</div>
+            <div class="ql-sub">{{ 'profile.insightsDesc' | t }}</div>
+          </div>
+          <span class="ql-arrow">›</span>
+        </a>
       </div>
     </div>
 
@@ -97,12 +174,12 @@
         <div class="history-toggle-left">
           <span class="history-toggle-icon">📅</span>
           <div>
-            <div class="history-toggle-title">Monthly History</div>
-            <div class="history-toggle-sub">View your past spending month by month</div>
+            <div class="history-toggle-title">{{ 'profile.monthlyHistory' | t }}</div>
+            <div class="history-toggle-sub">{{ 'profile.monthlyHistorySub' | t }}</div>
           </div>
         </div>
         <div class="history-toggle-btn" [class.open]="showHistory()">
-          {{ showHistory() ? 'Hide' : 'Show' }}
+          {{ showHistory() ? ('common.hide' | t) : ('common.show' | t) }}
           <span class="history-chevron">›</span>
         </div>
       </div>
@@ -110,7 +187,7 @@
       @if (showHistory()) {
         <div class="history-body">
           <div class="history-month-picker">
-            <label style="font-size:12px;font-weight:600;color:#6b7280;">Select Month</label>
+            <label style="font-size:12px;font-weight:600;color:var(--text-secondary);">{{ 'profile.selectMonth' | t }}</label>
             <select class="form-input history-select"
                     [ngModel]="selectedMonth()"
                     (ngModelChange)="selectedMonth.set($event)">
@@ -123,31 +200,31 @@
           @if (selectedExpenses().length === 0) {
             <div class="history-empty">
               <div class="history-empty-icon">🗓️</div>
-              <p>No expenses recorded for this month.</p>
+              <p>{{ 'profile.noExpensesMonth' | t }}</p>
             </div>
           } @else {
             <div class="history-summary">
               <div class="hs-item">
                 <div class="hs-val">₹{{ selectedTotal().toLocaleString() }}</div>
-                <div class="hs-lbl">Total Spent</div>
+                <div class="hs-lbl">{{ 'profile.totalSpent' | t }}</div>
               </div>
               <div class="hs-item">
                 <div class="hs-val">₹{{ totalBudgetLimit().toLocaleString() }}</div>
-                <div class="hs-lbl">Total Budget</div>
+                <div class="hs-lbl">{{ 'profile.totalBudget' | t }}</div>
               </div>
               <div class="hs-item">
                 <div class="hs-val" [class.positive]="remainingBudget() >= 0" [class.negative]="remainingBudget() < 0">
                   {{ remainingBudget() < 0 ? '-' : '' }}₹{{ Math.abs(remainingBudget()).toLocaleString() }}
                 </div>
-                <div class="hs-lbl">Remaining</div>
+                <div class="hs-lbl">{{ 'profile.remaining' | t }}</div>
               </div>
               <div class="hs-item">
                 <div class="hs-val">{{ selectedExpenses().length }}</div>
-                <div class="hs-lbl">Transactions</div>
+                <div class="hs-lbl">{{ 'profile.transactions' | t }}</div>
               </div>
               <div class="hs-item">
                 <div class="hs-val">{{ selectedCategories().length }}</div>
-                <div class="hs-lbl">Categories</div>
+                <div class="hs-lbl">{{ 'profile.categories' | t }}</div>
               </div>
               <div class="hs-item">
                 <div class="hs-val">
@@ -156,11 +233,11 @@
                     <span class="hs-over-badge">{{ overBudgetCount() }} over</span>
                   }
                 </div>
-                <div class="hs-lbl">Active Budgets</div>
+                <div class="hs-lbl">{{ 'profile.activeBudgets' | t }}</div>
               </div>
             </div>
 
-            <div class="history-section-title">By Category</div>
+            <div class="history-section-title">{{ 'profile.byCategory' | t }}</div>
             @for (cat of selectedCategories(); track cat.name) {
               <div class="h-cat-row">
                 <div class="h-cat-dot" [style.background]="cat.color"></div>
@@ -173,7 +250,7 @@
               </div>
             }
 
-            <div class="history-section-title" style="margin-top: 20px;">Transactions</div>
+            <div class="history-section-title" style="margin-top: 20px;">{{ 'profile.transactions' | t }}</div>
             @for (group of selectedGrouped(); track group.date) {
               <div class="h-date-label">{{ group.date }}</div>
               @for (tx of group.items; track tx.id) {
@@ -198,12 +275,12 @@
         <div class="history-toggle-left">
           <span class="history-toggle-icon">📓</span>
           <div>
-            <div class="history-toggle-title">Daily Tracker History</div>
-            <div class="history-toggle-sub">View your daily income & spending by month</div>
+            <div class="history-toggle-title">{{ 'profile.dailyHistory' | t }}</div>
+            <div class="history-toggle-sub">{{ 'profile.dailyHistorySub' | t }}</div>
           </div>
         </div>
         <div class="history-toggle-btn" [class.open]="showDailyHistory()">
-          {{ showDailyHistory() ? 'Hide' : 'Show' }}
+          {{ showDailyHistory() ? ('common.hide' | t) : ('common.show' | t) }}
           <span class="history-chevron">›</span>
         </div>
       </div>
@@ -211,7 +288,7 @@
       @if (showDailyHistory()) {
         <div class="history-body">
           <div class="history-month-picker">
-            <label style="font-size:12px;font-weight:600;color:#6b7280;">Select Month</label>
+            <label style="font-size:12px;font-weight:600;color:var(--text-secondary);">{{ 'profile.selectMonth' | t }}</label>
             <select class="form-input history-select"
                     [ngModel]="selectedMonth()"
                     (ngModelChange)="selectedMonth.set($event)">
@@ -224,29 +301,29 @@
           @if (selectedDailyEntries().length === 0) {
             <div class="history-empty">
               <div class="history-empty-icon">📓</div>
-              <p>No daily entries for this month.</p>
+              <p>{{ 'profile.noDailyMonth' | t }}</p>
             </div>
           } @else {
             <!-- Summary strip -->
             <div class="history-summary" style="grid-template-columns: repeat(3,1fr);">
               <div class="hs-item">
                 <div class="hs-val positive">₹{{ dailyIncome().toLocaleString() }}</div>
-                <div class="hs-lbl">Income</div>
+                <div class="hs-lbl">{{ 'profile.income' | t }}</div>
               </div>
               <div class="hs-item">
                 <div class="hs-val negative">₹{{ dailySpent().toLocaleString() }}</div>
-                <div class="hs-lbl">Spent</div>
+                <div class="hs-lbl">{{ 'profile.spent' | t }}</div>
               </div>
               <div class="hs-item">
                 <div class="hs-val" [class.positive]="dailyBalance() >= 0" [class.negative]="dailyBalance() < 0">
                   {{ dailyBalance() < 0 ? '-' : '+' }}₹{{ Math.abs(dailyBalance()).toLocaleString() }}
                 </div>
-                <div class="hs-lbl">Balance</div>
+                <div class="hs-lbl">{{ 'profile.balance' | t }}</div>
               </div>
             </div>
 
             <!-- Day-wise entries -->
-            <div class="history-section-title">Entries</div>
+            <div class="history-section-title">{{ 'profile.entries' | t }}</div>
             @for (group of dailyGrouped(); track group.date) {
               <div class="h-date-label">
                 {{ group.date }}

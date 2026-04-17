@@ -2,16 +2,18 @@ import { Component, computed, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { DataService, ExpenseItem } from '../../services/data.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
   selector: 'app-expense',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, TranslatePipe],
   templateUrl: './expense.html',
   styleUrl: './expense.scss',
 })
 export class Expense {
   private data = inject(DataService);
 
+  today      = new Date().toLocaleDateString('en-CA');
   showModal  = signal(false);
   editMode   = signal(false);
   editingId  = signal<string | null>(null);

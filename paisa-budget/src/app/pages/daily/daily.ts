@@ -1,26 +1,29 @@
 import { Component, computed, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 @Component({
   selector: 'app-daily',
-  imports: [FormsModule],
+  imports: [FormsModule, TranslatePipe],
   templateUrl: './daily.html',
   styleUrl: './daily.scss',
 })
 export class Daily {
-  Math = Math;
+  Math  = Math;
+  today = new Date().toLocaleDateString('en-CA');  // YYYY-MM-DD for [max]
   private data = inject(DataService);
 
   // ── Form ─────────────────────────────────────────────────
   form = {
-    description: '',
-    amount:      null as number | null,
-    note:        '',
-    entryType:   'EXPENSE' as 'EXPENSE' | 'INCOME',
-    entryDate:   new Date().toLocaleDateString('en-CA'),
+    description:  '',
+    amount:       null as number | null,
+    note:         '',
+    entryType:    'EXPENSE' as 'EXPENSE' | 'INCOME',
+    expenseDate:  new Date().toLocaleDateString('en-CA'),
+    incomeDate:   new Date().toLocaleDateString('en-CA'),
   };
   saving    = signal(false);
   formError = signal('');
@@ -108,7 +111,7 @@ export class Daily {
       amount:      this.form.amount,
       note:        this.form.note.trim(),
       entryType:   this.form.entryType,
-      entryDate:   this.form.entryDate,
+      entryDate:   this.form.entryType === 'EXPENSE' ? this.form.expenseDate : this.form.incomeDate,
     });
     this.saving.set(false);
 
@@ -116,7 +119,11 @@ export class Daily {
       this.form.description = '';
       this.form.amount      = null;
       this.form.note        = '';
-      this.form.entryDate   = new Date().toLocaleDateString('en-CA');
+      if (this.form.entryType === 'EXPENSE') {
+        this.form.expenseDate = new Date().toLocaleDateString('en-CA');
+      } else {
+        this.form.incomeDate = new Date().toLocaleDateString('en-CA');
+      }
     } else {
       this.formError.set(result.error ?? 'Failed to add entry.');
     }

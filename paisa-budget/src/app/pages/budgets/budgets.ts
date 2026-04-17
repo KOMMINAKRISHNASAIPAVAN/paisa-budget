@@ -2,6 +2,7 @@ import { Component, computed, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgTemplateOutlet } from '@angular/common';
 import { DataService, Budget } from '../../services/data.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 type PeriodFilter = 'all' | 'monthly' | 'weekly';
 
@@ -14,7 +15,7 @@ interface Allocation {
 
 @Component({
   selector: 'app-budgets',
-  imports: [FormsModule, NgTemplateOutlet],
+  imports: [FormsModule, NgTemplateOutlet, TranslatePipe],
   templateUrl: './budgets.html',
   styleUrl: './budgets.scss',
 })
