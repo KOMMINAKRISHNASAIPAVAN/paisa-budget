@@ -34,4 +34,12 @@ public class AuthController {
         Long userId = Long.parseLong(userDetails.getUsername());
         return ResponseEntity.ok(authService.getMe(userId));
     }
+
+    @PutMapping("/update-name")
+    public ResponseEntity<AuthResponse> updateName(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody UpdateNameRequest req) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        return ResponseEntity.ok(authService.updateName(userId, req.getName()));
+    }
 }
