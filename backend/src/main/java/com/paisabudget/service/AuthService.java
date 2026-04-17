@@ -7,6 +7,7 @@ import com.paisabudget.security.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -50,5 +51,15 @@ public class AuthService {
     public User getMe(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    }
+
+    @Transactional
+    public AuthResponse updateName(Long userId, String name) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        user.setName(name);
+        userRepository.save(user);
+        String token = jwtUtil.generateToken(user.getId());
+        return new AuthResponse(token, user.getId(), user.getName(), user.getPhone());
     }
 }
