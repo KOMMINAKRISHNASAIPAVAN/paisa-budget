@@ -6,6 +6,7 @@ import com.paisabudget.entity.User;
 import com.paisabudget.repository.DailyEntryRepository;
 import com.paisabudget.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -28,6 +29,7 @@ public class DailyEntryService {
         return repo.findByUserId(userId);
     }
 
+    @Transactional
     public DailyEntry addEntry(Long userId, DailyEntryRequest req) {
         User user = userRepo.findById(userId)
             .orElseThrow(() -> new RuntimeException("User not found"));
@@ -43,6 +45,7 @@ public class DailyEntryService {
         return repo.save(entry);
     }
 
+    @Transactional
     public void deleteEntry(Long userId, Long entryId) {
         DailyEntry entry = repo.findByIdAndUserId(entryId, userId)
             .orElseThrow(() -> new RuntimeException("Entry not found"));
