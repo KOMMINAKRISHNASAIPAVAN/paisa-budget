@@ -3,8 +3,34 @@
     <h1>{{ 'expense.title' | t }}</h1>
     <p>{{ 'expense.desc' | t }}</p>
   </div>
-  <button class="btn btn-primary" (click)="openModal()">{{ 'expense.addBtn' | t }}</button>
+  <div class="header-actions">
+    <button class="btn scan-btn" (click)="openScanner()" [disabled]="scanning()">
+      📷 Scan Bill
+    </button>
+    <button class="btn btn-primary" (click)="openModal()">{{ 'expense.addBtn' | t }}</button>
+  </div>
 </div>
+
+@if (scanError()) {
+  <div class="scan-error-banner">⚠️ {{ scanError() }}</div>
+}
+
+<!-- Scanning overlay -->
+@if (scanning()) {
+  <div class="scan-overlay">
+    <div class="scan-overlay-box">
+      <div class="scan-spinner"></div>
+      <div class="scan-overlay-title">Scanning bill…</div>
+      <div class="scan-overlay-sub">Reading text from your photo</div>
+      @if (scanProgress() > 0) {
+        <div class="scan-progress-wrap">
+          <div class="scan-progress-bar" [style.width.%]="scanProgress()"></div>
+        </div>
+        <div class="scan-pct">{{ scanProgress() }}%</div>
+      }
+    </div>
+  </div>
+}
 
 <div class="grid-3" style="margin-bottom: 24px;">
   <div class="stat-card">
