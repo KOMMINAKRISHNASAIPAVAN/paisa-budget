@@ -222,93 +222,114 @@ export class Expense {
   }
 
   private parseReceipt(text: string): { amount: number | null; description: string; category: string } {
-    // ── Pre-clean: remove lines containing contact/phone info ─
-    const cleanedText = text.split('\n')
+
+    // ── Step 1: Clean the raw OCR text ────────────────────
+    const cleanLines = text.split('\n')
       .filter(line => {
         const l = line.toLowerCase();
-        return !/(whatsapp|phone|mobile|tel:|fax|contact|helpline|call us|reach us|sms|appointment)/.test(l);
-      })
-      .join('\n')
-      // Remove +91 followed by digits/spaces (Indian phone numbers)
-      .replace(/\+91[\s\-]?[\d\s\-]{8,14}/g, '')
-      // Remove standalone 10-digit Indian numbers (6-9 start)
-      .replace(/\b[6-9]\d{9}\b/g, '')
-      // Remove 4-digit segments that look like split phone parts (e.g. 9966 823 725 → remove 9966)
-      .replace(/\b(9[89]\d{2}|[6-9]\d{3})\b(?=\s*\d{3})/g, '')
-      // Merge split numbers like "11 000" → "11000" (OCR sometimes splits thousand groups)
-      .replace(/\b(\d+)\s(\d{3})\b/g, '$1$2');
+        // Drop lines with contact/phone keywords
+        return !/(whatsapp|phone|mobile|tel:|fax|contact|helpline|call us|sms|appointment|timings|mon-|sun-)/.test(l);
+      });
 
-    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 1);
-    const lower = text.toLowerCase();
+    const cleanedText = cleanLines.join('\n')
+      .replace(/\+91[\s\-]?[\d\s\-]{8,14}/g, '')     // remove +91 numbers
+      .replace(/\b[6-9]\d{9}\b/g, '')                  // remove 10-digit mobiles
+      .replace(/\b(\d+)\s(\d{3})\b/g, '$1$2');         // merge "11 000" → "11000"
 
-    // ── Amount detection ──────────────────────────────────
+    const lower = cleanedText.toLowerCase();
+
+    // ── Step 2: Amount — line-by-line keyword search ──────
+    // Split into lines and look for total/amount keywords,
+    // then grab the rightmost number on that line OR the number on the next line.
     let amount: number | null = null;
+    const cLines = cleanedText.split('\n');
 
-    // Priority 1: total/grand total/net amount/amount paid keywords
-    const totalMatch = cleanedText.match(
-      /(?:grand\s*total|total\s*amount|net\s*amount|amount\s*due|amount\s*paid|bill\s*total|net\s*payable|payable|balance\s*due|total)[:\s₹Rs.]*([0-9,]+(?:\.[0-9]{1,2})?)/i
-    );
-    if (totalMatch) {
-      const val = parseFloat(totalMatch[1].replace(/,/g, ''));
-      if (!isNaN(val) && val > 0) amount = val;
-    }
+    const totalKeywords = /total\s*amount|grand\s*total|net\s*amount|amount\s*paid|amount\s*due|net\s*payable|balance\s*due|payable|subtotal|total/i;
 
-    // Priority 2: ₹ symbol
-    if (!amount) {
-      const rupeeMatch = cleanedText.match(/₹\s*([0-9,]+(?:\.[0-9]{1,2})?)/);
-      if (rupeeMatch) {
-        const val = parseFloat(rupeeMatch[1].replace(/,/g, ''));
-        if (!isNaN(val) && val > 0) amount = val;
+    for (let i = 0; i < cLines.length; i++) {
+      if (!totalKeywords.test(cLines[i])) continue;
+
+      // Try rightmost number on this line
+      const nums = [...cLines[i].matchAll(/([0-9,]+(?:\.[0-9]{1,2})?)/g)]
+        .map(m => parseFloat(m[1].replace(/,/g, '')))
+        .filter(n => n >= 50 && n <= 500000 && !(n >= 1990 && n <= 2100));
+      if (nums.length > 0) { amount = nums[nums.length - 1]; break; }
+
+      // Try number at the start of the next line
+      if (i + 1 < cLines.length) {
+        const nextNum = cLines[i + 1].match(/^\s*([0-9,]+(?:\.[0-9]{1,2})?)/);
+        if (nextNum) {
+          const val = parseFloat(nextNum[1].replace(/,/g, ''));
+          if (val >= 50 && val <= 500000 && !(val >= 1990 && val <= 2100)) {
+            amount = val; break;
+          }
+        }
       }
     }
 
-    // Priority 3: Rs. pattern
+    // ── Step 3: Amount — ₹ / Rs symbol fallback ──────────
+    if (!amount) {
+      const rupeeMatch = cleanedText.match(/[₹]\s*([0-9,]+(?:\.[0-9]{1,2})?)/);
+      if (rupeeMatch) {
+        const val = parseFloat(rupeeMatch[1].replace(/,/g, ''));
+        if (val >= 50) amount = val;
+      }
+    }
     if (!amount) {
       const rsMatch = cleanedText.match(/Rs\.?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i);
       if (rsMatch) {
         const val = parseFloat(rsMatch[1].replace(/,/g, ''));
-        if (!isNaN(val) && val > 0) amount = val;
+        if (val >= 50) amount = val;
       }
     }
 
-    // Priority 4: largest plausible number from cleaned text
-    // Exclude years (1990-2099), receipt/serial numbers (< 500), and phone fragments
+    // ── Step 4: Amount — largest valid number fallback ────
     if (!amount) {
       const nums = [...cleanedText.matchAll(/\b([0-9,]+(?:\.[0-9]{1,2})?)\b/g)]
         .map(m => parseFloat(m[1].replace(/,/g, '')))
-        .filter(n => !isNaN(n) && n >= 50 && n <= 500000
-                  && !(n >= 1990 && n <= 2100)   // exclude years like 2026
-                  && !(n >= 1 && n <= 99));        // exclude small receipt/serial numbers
+        .filter(n => !isNaN(n) && n >= 100 && n <= 500000 && !(n >= 1990 && n <= 2100));
       if (nums.length > 0) amount = Math.max(...nums);
     }
 
-    // ── Description detection ─────────────────────────────
+    // ── Step 5: Description — skip header/logo garbage ───
     const skipWords = ['tax', 'gst', 'total', 'amount', 'bill', 'invoice',
-      'receipt', 'thank', 'date', 'time', 'phone', 'address', 'cash', 'card'];
+      'receipt', 'thank', 'date', 'time', 'phone', 'address', 'cash', 'card',
+      'payment', 'subtotal', 'discount', 'patient', 'information', 'name:',
+      'surgery', 'pvt', 'ltd'];
     let description = '';
-    for (const line of lines.slice(0, 6)) {
-      const l = line.toLowerCase();
-      if (l.length < 3) continue;
-      if (skipWords.some(w => l.includes(w))) continue;
-      if (/^[0-9\s:₹%.,/-]+$/.test(line)) continue;
-      description = line.replace(/[^a-zA-Z0-9\s&'.()\-]/g, '').trim();
-      if (description.length >= 3) break;
+
+    // Skip first 2 lines (usually logo/clinic name with OCR noise), start from line 3
+    const descLines = cleanLines.slice(2);
+    for (const line of descLines) {
+      const l = line.trim();
+      if (l.length < 4) continue;
+      if (skipWords.some(w => l.toLowerCase().includes(w))) continue;
+      if (/^[\d\s:₹%.,/\-()]+$/.test(l)) continue;   // only numbers/punctuation
+      if (/^\W+$/.test(l)) continue;                   // only symbols
+      const cleaned = l.replace(/[^a-zA-Z0-9\s&'\-]/g, '').trim();
+      if (cleaned.length >= 3 && /[a-zA-Z]/.test(cleaned)) {
+        description = cleaned;
+        break;
+      }
     }
 
-    // ── Category detection ────────────────────────────────
+    // ── Step 6: Category detection ────────────────────────
+    const fullLower = text.toLowerCase();
     let category = 'Shopping';
 
-    if (/swiggy|zomato|restaurant|cafe|food|pizza|burger|biryani|hotel|dhaba|eatery|kitchen|tiffin|mess|bakery|domino|kfc|mcdonald|subway|barbeque|thirsting|canteen/.test(lower)) {
-      category = 'Food';
-    } else if (/uber|ola|rapido|petrol|fuel|diesel|redbus|irctc|railway|metro|bus|auto|cab|ticket|transport|parking|toll|ride/.test(lower)) {
-      category = 'Transport';
-    } else if (/apollo|medplus|pharmacy|hospital|clinic|medical|medicine|doctor|health|diagnostic|lab|pathology|wellness/.test(lower)) {
+    if (/dental|canal|tooth|teeth|orthodon|endodon|periodon|oral|jaw|maxillo/.test(fullLower)) {
       category = 'Health';
-    } else if (/pvr|inox|bookmyshow|movie|cinema|netflix|hotstar|prime|game|entertainment|sport|amusement/.test(lower)) {
+    } else if (/swiggy|zomato|restaurant|cafe|food|pizza|burger|biryani|hotel|dhaba|eatery|kitchen|tiffin|bakery|domino|kfc|mcdonald|subway|canteen/.test(fullLower)) {
+      category = 'Food';
+    } else if (/uber|ola|rapido|petrol|fuel|diesel|redbus|irctc|railway|metro|bus|auto|cab|parking|toll/.test(fullLower)) {
+      category = 'Transport';
+    } else if (/apollo|medplus|pharmacy|hospital|clinic|medical|medicine|doctor|health|diagnostic|lab|pathology|wellness/.test(fullLower)) {
+      category = 'Health';
+    } else if (/pvr|inox|bookmyshow|movie|cinema|netflix|hotstar|prime|game|entertainment|sport/.test(fullLower)) {
       category = 'Entertainment';
-    } else if (/school|college|university|book|stationery|course|tuition|coaching|education|fee|library/.test(lower)) {
+    } else if (/school|college|university|book|stationery|course|tuition|coaching|education|fee|library/.test(fullLower)) {
       category = 'Education';
-    } else if (/amazon|flipkart|myntra|mall|mart|supermarket|bigbazaar|dmart|reliance|store|shop|retail|grocer|vegetable|fruit/.test(lower)) {
+    } else if (/amazon|flipkart|myntra|mall|mart|supermarket|bigbazaar|dmart|reliance|store|shop|retail|grocer/.test(fullLower)) {
       category = 'Shopping';
     }
 
