@@ -222,15 +222,29 @@ export class Expense {
   }
 
   private parseReceipt(text: string): { amount: number | null; description: string; category: string } {
+    // ── Pre-clean: remove lines containing contact/phone info ─
+    const cleanedText = text.split('\n')
+      .filter(line => {
+        const l = line.toLowerCase();
+        return !/(whatsapp|phone|mobile|tel:|fax|contact|helpline|call us|reach us|sms|appointment)/.test(l);
+      })
+      .join('\n')
+      // Remove +91 followed by digits/spaces (Indian phone numbers)
+      .replace(/\+91[\s\-]?[\d\s\-]{8,14}/g, '')
+      // Remove standalone 10-digit Indian numbers (6-9 start)
+      .replace(/\b[6-9]\d{9}\b/g, '')
+      // Remove 4-digit segments that look like split phone parts (e.g. 9966 823 725 → remove 9966)
+      .replace(/\b(9[89]\d{2}|[6-9]\d{3})\b(?=\s*\d{3})/g, '');
+
     const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 1);
     const lower = text.toLowerCase();
 
     // ── Amount detection ──────────────────────────────────
     let amount: number | null = null;
 
-    // Priority 1: total/grand total/net amount keywords
-    const totalMatch = text.match(
-      /(?:grand\s*total|total\s*amount|net\s*amount|amount\s*due|bill\s*total|payable|total)[:\s₹Rs.]*([0-9,]+(?:\.[0-9]{1,2})?)/i
+    // Priority 1: total/grand total/net amount/amount paid keywords
+    const totalMatch = cleanedText.match(
+      /(?:grand\s*total|total\s*amount|net\s*amount|amount\s*due|amount\s*paid|bill\s*total|net\s*payable|payable|balance\s*due|total)[:\s₹Rs.]*([0-9,]+(?:\.[0-9]{1,2})?)/i
     );
     if (totalMatch) {
       const val = parseFloat(totalMatch[1].replace(/,/g, ''));
@@ -239,7 +253,7 @@ export class Expense {
 
     // Priority 2: ₹ symbol
     if (!amount) {
-      const rupeeMatch = text.match(/₹\s*([0-9,]+(?:\.[0-9]{1,2})?)/);
+      const rupeeMatch = cleanedText.match(/₹\s*([0-9,]+(?:\.[0-9]{1,2})?)/);
       if (rupeeMatch) {
         const val = parseFloat(rupeeMatch[1].replace(/,/g, ''));
         if (!isNaN(val) && val > 0) amount = val;
@@ -248,16 +262,16 @@ export class Expense {
 
     // Priority 3: Rs. pattern
     if (!amount) {
-      const rsMatch = text.match(/Rs\.?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i);
+      const rsMatch = cleanedText.match(/Rs\.?\s*([0-9,]+(?:\.[0-9]{1,2})?)/i);
       if (rsMatch) {
         const val = parseFloat(rsMatch[1].replace(/,/g, ''));
         if (!isNaN(val) && val > 0) amount = val;
       }
     }
 
-    // Priority 4: largest plausible number
+    // Priority 4: largest plausible number from cleaned text (phone numbers removed)
     if (!amount) {
-      const nums = [...text.matchAll(/\b([0-9,]+(?:\.[0-9]{1,2})?)\b/g)]
+      const nums = [...cleanedText.matchAll(/\b([0-9,]+(?:\.[0-9]{1,2})?)\b/g)]
         .map(m => parseFloat(m[1].replace(/,/g, '')))
         .filter(n => !isNaN(n) && n >= 10 && n <= 500000);
       if (nums.length > 0) amount = Math.max(...nums);
