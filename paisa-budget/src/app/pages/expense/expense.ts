@@ -267,7 +267,23 @@ export class Expense {
       }
     }
 
-    // ── Step 3: Amount — ₹ / Rs symbol fallback ──────────
+    // ── Step 3: Amount — right-aligned column numbers ─────
+    // Bills often show amounts right-aligned at end of lines:
+    // "Root Canal Treatment    11000" or "Amount Paid    11000"
+    if (!amount) {
+      const rightNums = cLines
+        .map(line => {
+          const m = line.match(/([0-9,]+(?:\.[0-9]{1,2})?)\s*$/);
+          if (!m) return null;
+          return parseFloat(m[1].replace(/,/g, ''));
+        })
+        .filter((n): n is number =>
+          n !== null && !isNaN(n) && n >= 100 && n <= 500000 && !(n >= 1990 && n <= 2100)
+        );
+      if (rightNums.length > 0) amount = Math.max(...rightNums);
+    }
+
+    // ── Step 4: Amount — ₹ / Rs symbol fallback ──────────
     if (!amount) {
       const rupeeMatch = cleanedText.match(/[₹]\s*([0-9,]+(?:\.[0-9]{1,2})?)/);
       if (rupeeMatch) {
@@ -283,7 +299,7 @@ export class Expense {
       }
     }
 
-    // ── Step 4: Amount — largest valid number fallback ────
+    // ── Step 5: Amount — largest valid number fallback ────
     if (!amount) {
       const nums = [...cleanedText.matchAll(/\b([0-9,]+(?:\.[0-9]{1,2})?)\b/g)]
         .map(m => parseFloat(m[1].replace(/,/g, '')))
