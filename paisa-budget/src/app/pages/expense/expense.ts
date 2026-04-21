@@ -167,6 +167,47 @@ export class Expense {
     input.click();
   }
 
+  // Pre-process image: grayscale + high contrast + threshold
+  // Removes light-coloured stamps/watermarks and improves OCR accuracy
+  private preprocessImage(file: File): Promise<HTMLCanvasElement> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        // Scale down if too large (OCR accuracy peaks around 2000px wide)
+        const MAX = 2000;
+        const scale = img.width > MAX ? MAX / img.width : 1;
+        const w = Math.round(img.width  * scale);
+        const h = Math.round(img.height * scale);
+
+        const canvas = document.createElement('canvas');
+        canvas.width  = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, w, h);
+
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const d = imgData.data;
+
+        for (let i = 0; i < d.length; i += 4) {
+          // Convert to grayscale
+          let g = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+          // Boost contrast
+          g = Math.min(255, Math.max(0, (g - 128) * 1.8 + 128));
+          // Binary threshold — anything above 145 becomes white
+          g = g > 145 ? 255 : 0;
+          d[i] = d[i + 1] = d[i + 2] = g;
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        URL.revokeObjectURL(url);
+        resolve(canvas);
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
   async scanBill(file: File) {
     this.scanning.set(true);
     this.scanProgress.set(0);
@@ -186,7 +227,9 @@ export class Expense {
         },
       } as any);
 
-      const { data: { text } } = await worker.recognize(file);
+      // Pre-process: remove watermark/stamp, sharpen text
+      const canvas = await this.preprocessImage(file);
+      const { data: { text } } = await worker.recognize(canvas);
       await worker.terminate();
 
       const parsed = this.parseReceipt(text);
