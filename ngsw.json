@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1776678684540,
+  "timestamp": 1776755699549,
   "index": "/paisa-budget/index.html",
   "assetGroups": [
     {
@@ -11,11 +11,14 @@
         "ignoreVary": true
       },
       "urls": [
+        "/paisa-budget/chunk-HRFNFVUP.js",
+        "/paisa-budget/chunk-X7TKPZZP.js",
         "/paisa-budget/favicon.ico",
         "/paisa-budget/index.html",
-        "/paisa-budget/main-5NGQ5UNA.js",
+        "/paisa-budget/main-HPNI3AKQ.js",
         "/paisa-budget/manifest.webmanifest",
-        "/paisa-budget/styles-TQ5A6TAK.css"
+        "/paisa-budget/styles-TQ5A6TAK.css",
+        "/paisa-budget/worker.min.js"
       ],
       "patterns": []
     },
@@ -41,6 +44,8 @@
   ],
   "dataGroups": [],
   "hashTable": {
+    "/paisa-budget/chunk-HRFNFVUP.js": "b96de2284594e13f6c776e8c9c5cd6231088f040",
+    "/paisa-budget/chunk-X7TKPZZP.js": "78ab79eeaf19b9428215f96e7b77434766c3c61e",
     "/paisa-budget/favicon.ico": "9c39f434fe1261f68c5e3eefdf734630d99c5670",
     "/paisa-budget/icons/icon-128x128.png": "f912963bdc6d5a38d8f1dd0afbaab2ce8d657acb",
     "/paisa-budget/icons/icon-144x144.png": "b155fd5f2fd5d2ea7760721063003c4cd95fd783",
@@ -50,10 +55,11 @@
     "/paisa-budget/icons/icon-512x512.png": "1de182f76f7329dfa8f9fcdd1fdcdd695bea6a99",
     "/paisa-budget/icons/icon-72x72.png": "aa88a6096bd973be7f6d7a5489bfa6bc2463f8c4",
     "/paisa-budget/icons/icon-96x96.png": "7fb8f59c30ce2ff12c700321a0b39e14b3dc8f95",
-    "/paisa-budget/index.html": "f91bedfb425c9a22fcc53d32033f47d1a4a5c0d0",
-    "/paisa-budget/main-5NGQ5UNA.js": "bf603b90f2bcdfae5d27adab80a09ccf3e67bbb6",
+    "/paisa-budget/index.html": "789797fba71cc332b4ee052b239ab0a6874e2d98",
+    "/paisa-budget/main-HPNI3AKQ.js": "d6af9fb3b88d875f785a50809029882a151fa61b",
     "/paisa-budget/manifest.webmanifest": "c3cb41bd4d9714f17c0603c77fa113f0b9022243",
-    "/paisa-budget/styles-TQ5A6TAK.css": "02d43d983dfe1130c1f09ea38355515355e67eb3"
+    "/paisa-budget/styles-TQ5A6TAK.css": "02d43d983dfe1130c1f09ea38355515355e67eb3",
+    "/paisa-budget/worker.min.js": "fcdfc690d75dfa8d3e121b0b35b463f7dcabfc38"
   },
   "navigationUrls": [
     {
