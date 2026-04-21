@@ -234,7 +234,9 @@ export class Expense {
       // Remove standalone 10-digit Indian numbers (6-9 start)
       .replace(/\b[6-9]\d{9}\b/g, '')
       // Remove 4-digit segments that look like split phone parts (e.g. 9966 823 725 → remove 9966)
-      .replace(/\b(9[89]\d{2}|[6-9]\d{3})\b(?=\s*\d{3})/g, '');
+      .replace(/\b(9[89]\d{2}|[6-9]\d{3})\b(?=\s*\d{3})/g, '')
+      // Merge split numbers like "11 000" → "11000" (OCR sometimes splits thousand groups)
+      .replace(/\b(\d+)\s(\d{3})\b/g, '$1$2');
 
     const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 1);
     const lower = text.toLowerCase();
@@ -269,11 +271,14 @@ export class Expense {
       }
     }
 
-    // Priority 4: largest plausible number from cleaned text (phone numbers removed)
+    // Priority 4: largest plausible number from cleaned text
+    // Exclude years (1990-2099), receipt/serial numbers (< 500), and phone fragments
     if (!amount) {
       const nums = [...cleanedText.matchAll(/\b([0-9,]+(?:\.[0-9]{1,2})?)\b/g)]
         .map(m => parseFloat(m[1].replace(/,/g, '')))
-        .filter(n => !isNaN(n) && n >= 10 && n <= 500000);
+        .filter(n => !isNaN(n) && n >= 50 && n <= 500000
+                  && !(n >= 1990 && n <= 2100)   // exclude years like 2026
+                  && !(n >= 1 && n <= 99));        // exclude small receipt/serial numbers
       if (nums.length > 0) amount = Math.max(...nums);
     }
 
