@@ -23,6 +23,8 @@ export class Profile {
   theme         = inject(ThemeService);
   lang          = inject(LanguageService);
 
+  constructor() { this.auth.refreshUser(); }
+
   initials = computed(() => {
     const name = this.auth.currentUser()?.name ?? '';
     return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
