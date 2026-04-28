@@ -21,7 +21,20 @@ export class AuthService {
   isLoggedIn  = computed(() => this._user() !== null);
   currentUser = computed(() => this._user());
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) {
+    if (this.loadSession()) this.syncFromServer();
+  }
+
+  private async syncFromServer() {
+    try {
+      const user: any = await firstValueFrom(
+        this.http.get(`${environment.apiUrl}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${this.getToken()}` }
+        })
+      );
+      this.saveSession(this.getToken()!, { id: user.id, name: user.name, phone: user.phone });
+    } catch { }
+  }
 
   async register(name: string, phone: string, password: string): Promise<{ ok: boolean; error?: string }> {
     try {
