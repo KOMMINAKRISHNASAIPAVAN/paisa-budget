@@ -43,14 +43,18 @@ public class BudgetService {
                 b.setSpent(0.0);
                 b.setStatus("On Track");
                 b.setIsActive(true);
+                b.setBudgetLimit(req.getBudgetLimit());
+                b.setTotalBudget(req.getTotalBudget());
+            } else {
+                // Existing budget — accumulate amounts instead of replacing
+                b.setBudgetLimit(b.getBudgetLimit() + req.getBudgetLimit());
+                b.setTotalBudget(b.getTotalBudget() + req.getTotalBudget());
             }
 
             b.setIcon(req.getIcon());
             b.setCategory(req.getCategory());
             b.setType(type);
             b.setPeriodLabel(req.getPeriodLabel());
-            b.setTotalBudget(req.getTotalBudget());
-            b.setBudgetLimit(req.getBudgetLimit());
             return b;
         }).toList();
 
