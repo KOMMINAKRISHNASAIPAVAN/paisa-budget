@@ -22,10 +22,11 @@ export class AuthService {
   currentUser = computed(() => this._user());
 
   constructor(private http: HttpClient, private router: Router) {
-    if (this.loadSession()) this.syncFromServer();
+    if (this.loadSession()) this.refreshUser();
   }
 
-  private async syncFromServer() {
+  async refreshUser() {
+    if (!this.getToken()) return;
     try {
       const user: any = await firstValueFrom(
         this.http.get(`${environment.apiUrl}/api/auth/me`, {
