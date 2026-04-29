@@ -2,6 +2,7 @@ import { Component, computed, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgTemplateOutlet } from '@angular/common';
 import { DataService, Budget } from '../../services/data.service';
+import { AuthService } from '../../services/auth';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
 type PeriodFilter = 'all' | 'monthly' | 'weekly';
@@ -22,6 +23,10 @@ interface Allocation {
 export class Budgets {
   Math = Math;
   private data = inject(DataService);
+  private auth = inject(AuthService);
+
+  monthlyIncome = computed(() => this.auth.currentUser()?.monthlyIncome ?? 0);
+  overIncome    = computed(() => this.monthlyIncome() > 0 && this.summaryTotal() > this.monthlyIncome());
 
   activePeriod = signal<PeriodFilter>('all');
   showModal    = signal(false);
