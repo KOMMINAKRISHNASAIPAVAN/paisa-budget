@@ -38,12 +38,23 @@ export interface ExpenseItem {
   budgetType: 'monthly' | 'weekly';
 }
 
+export interface StoredNotification {
+  id: number;
+  title: string;
+  message: string;
+  icon: string;
+  type: string;
+  read: boolean;
+  createdAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DataService {
 
-  budgets      = signal<Budget[]>([]);
-  expenses     = signal<ExpenseItem[]>([]);
-  dailyEntries = signal<DailyEntry[]>([]);
+  budgets             = signal<Budget[]>([]);
+  expenses            = signal<ExpenseItem[]>([]);
+  dailyEntries        = signal<DailyEntry[]>([]);
+  storedNotifications = signal<StoredNotification[]>([]);
 
   private toast      = inject(ToastService);
   private notifState = inject(NotifStateService);
@@ -51,7 +62,46 @@ export class DataService {
 
   // ── Load ──────────────────────────────────────────────────
   async loadAll() {
-    await Promise.all([this.loadBudgets(), this.loadExpenses(), this.loadDailyEntries()]);
+    await Promise.all([this.loadBudgets(), this.loadExpenses(), this.loadDailyEntries(), this.loadNotifications()]);
+  }
+
+  async loadNotifications() {
+    try {
+      const data: any[] = await firstValueFrom(
+        this.http.get<any[]>(`${environment.apiUrl}/api/notifications`)
+      );
+      this.storedNotifications.set(data.map(n => ({
+        id: n.id, title: n.title, message: n.message,
+        icon: n.icon, type: n.type, read: n.read,
+        createdAt: n.createdAt,
+      })));
+      const hasUnread = data.some(n => !n.read);
+      if (hasUnread) this.notifState.markUnread();
+    } catch { this.storedNotifications.set([]); }
+  }
+
+  async createNotification(title: string, message: string, icon: string, type = 'ALERT') {
+    try {
+      const n: any = await firstValueFrom(
+        this.http.post<any>(`${environment.apiUrl}/api/notifications`, { title, message, icon, type })
+      );
+      this.storedNotifications.update(list => [{ id: n.id, title: n.title, message: n.message, icon: n.icon, type: n.type, read: n.read, createdAt: n.createdAt }, ...list]);
+      this.notifState.markUnread();
+    } catch {}
+  }
+
+  async markNotificationsRead() {
+    try {
+      await firstValueFrom(this.http.patch(`${environment.apiUrl}/api/notifications/read-all`, {}));
+      this.storedNotifications.update(list => list.map(n => ({ ...n, read: true })));
+    } catch {}
+  }
+
+  async deleteNotification(id: number) {
+    try {
+      await firstValueFrom(this.http.delete(`${environment.apiUrl}/api/notifications/${id}`));
+      this.storedNotifications.update(list => list.filter(n => n.id !== id));
+    } catch {}
   }
 
   async loadBudgets() {
@@ -183,8 +233,16 @@ export class DataService {
       const overBefore = new Set(this.budgets().filter(b => b.active && b.spent > b.limit).map(b => b.id));
       await this.loadBudgets();
       const newlyOver = this.budgets().filter(b => b.active && b.spent > b.limit && !overBefore.has(b.id));
-      if (newlyOver.length > 0) this.notifState.markUnread();
       this.toast.show(`₹${item.amount.toLocaleString()} expense added — ${item.category}`, item.icon || '💸');
+      for (const b of newlyOver) {
+        const over = b.spent - b.limit;
+        this.toast.show(`${b.icon} ${b.category} budget exceeded by ₹${over.toLocaleString()}!`, '⚠️', 'warning', 5000);
+        await this.createNotification(
+          `${b.icon} ${b.category} Budget Exceeded`,
+          `You've gone ₹${over.toLocaleString()} over your ₹${b.limit.toLocaleString()} ${b.category} budget. Spent: ₹${b.spent.toLocaleString()}.`,
+          '🚨', 'ALERT'
+        );
+      }
     } catch {
       this.toast.show('Failed to add expense. Please try again.', '❌', 'warning');
     }
@@ -336,5 +394,6 @@ export class DataService {
     this.budgets.set([]);
     this.expenses.set([]);
     this.dailyEntries.set([]);
+    this.storedNotifications.set([]);
   }
 }

@@ -13,9 +13,9 @@
 <!-- ── Stat Cards ──────────────────────────────────────────── -->
 <div class="notif-stats" style="margin-bottom: 24px;">
   <div class="stat-card">
-    <div class="stat-label">Total</div>
-    <div class="stat-value">{{ allNotifications().length }}</div>
-    <div class="stat-change" [style.color]="'var(--text-muted)'">All notifications</div>
+    <div class="stat-label">Stored Alerts</div>
+    <div class="stat-value" [style.color]="storedNotifs().length > 0 ? 'var(--danger)' : 'inherit'">{{ storedNotifs().length }}</div>
+    <div class="stat-change" [style.color]="'var(--text-muted)'">From your activity</div>
   </div>
   <div class="stat-card">
     <div class="stat-label">Alerts</div>
@@ -36,7 +36,40 @@
   </div>
 </div>
 
+<!-- ── Stored Alerts (from DB) ─────────────────────────────── -->
+@if (storedNotifs().length > 0) {
+  <div style="margin-bottom: 24px;">
+    <h3 style="font-size:14px; font-weight:600; color:var(--text-secondary); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px;">
+      🔴 Budget Alerts
+    </h3>
+    <div class="notif-list">
+      @for (n of storedNotifs(); track n.id) {
+        <div class="notif-card notif-alert" [class.notif-read]="n.read">
+          <div class="notif-icon">{{ n.icon }}</div>
+          <div class="notif-body">
+            <div class="notif-header-row">
+              <span class="notif-title">{{ n.title }}</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                @if (!n.read) { <span class="unread-dot"></span> }
+                <span class="notif-badge" style="background:var(--danger)">Alert</span>
+              </div>
+            </div>
+            <div class="notif-text">{{ n.message }}</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+              <div class="notif-time">{{ formatTime(n.createdAt) }}</div>
+              <button class="delete-btn" (click)="deleteStored(n.id, $event)" title="Dismiss">✕</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}
+
 <!-- ── Filter Tabs ─────────────────────────────────────────── -->
+<h3 style="font-size:14px; font-weight:600; color:var(--text-secondary); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px;">
+  💡 Smart Insights
+</h3>
 <div class="filter-tabs" style="margin-bottom: 20px;">
   <button class="filter-tab" [class.active]="activeFilter() === 'all'" (click)="setFilter('all')">
     All <span class="tab-count">{{ allNotifications().length }}</span>
@@ -55,7 +88,7 @@
   </button>
 </div>
 
-<!-- ── Notification List ───────────────────────────────────── -->
+<!-- ── Smart Notification List ────────────────────────────── -->
 @if (filtered().length === 0) {
   <div class="card">
     <div class="notif-empty">

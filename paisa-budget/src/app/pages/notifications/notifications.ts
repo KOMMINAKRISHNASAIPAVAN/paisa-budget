@@ -30,8 +30,31 @@ export class Notifications {
   private auth       = inject(AuthService);
   private notifState = inject(NotifStateService);
 
+  storedNotifs = this.data.storedNotifications;
+
   constructor() {
     this.notifState.markSeen();
+    this.data.markNotificationsRead();
+  }
+
+  deleteStored(id: number, event: Event) {
+    event.stopPropagation();
+    this.data.deleteNotification(id);
+  }
+
+  formatTime(dateStr: string): string {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1)  return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHrs = Math.floor(diffMins / 60);
+    if (diffHrs < 24)  return `${diffHrs}h ago`;
+    const diffDays = Math.floor(diffHrs / 24);
+    if (diffDays < 7)  return `${diffDays}d ago`;
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
   }
 
   activeFilter = signal<'all' | NotifType>('all');
