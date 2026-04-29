@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ToastService } from './toast.service';
+import { NotifStateService } from './notif-state.service';
 
 export interface Budget {
   id: string;
@@ -44,7 +45,8 @@ export class DataService {
   expenses     = signal<ExpenseItem[]>([]);
   dailyEntries = signal<DailyEntry[]>([]);
 
-  private toast = inject(ToastService);
+  private toast      = inject(ToastService);
+  private notifState = inject(NotifStateService);
   constructor(private http: HttpClient) {}
 
   // ── Load ──────────────────────────────────────────────────
@@ -178,7 +180,10 @@ export class DataService {
       );
       const newItem = this.mapExpense(data);
       this.expenses.update(el => [newItem, ...el]);
+      const overBefore = new Set(this.budgets().filter(b => b.active && b.spent > b.limit).map(b => b.id));
       await this.loadBudgets();
+      const newlyOver = this.budgets().filter(b => b.active && b.spent > b.limit && !overBefore.has(b.id));
+      if (newlyOver.length > 0) this.notifState.markUnread();
       this.toast.show(`₹${item.amount.toLocaleString()} expense added — ${item.category}`, item.icon || '💸');
     } catch {
       this.toast.show('Failed to add expense. Please try again.', '❌', 'warning');

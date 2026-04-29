@@ -31,6 +31,6 @@ export class Sidebar {
     return overBudget + overIncome;
   });
 
-  // Only show badge when alert count increased since user last visited
-  showBadge = computed(() => this.alertCount() > this.notifState.seenCount());
+  // Show badge when there are alerts AND user hasn't seen them yet
+  showBadge = computed(() => this.alertCount() > 0 && this.notifState.hasUnread());
 }

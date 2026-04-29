@@ -1,15 +1,20 @@
 import { Injectable, signal } from '@angular/core';
 
-const KEY = 'notif_seen_count';
+const KEY = 'notif_has_unread';
 
 @Injectable({ providedIn: 'root' })
 export class NotifStateService {
-  private _seenCount = signal(parseInt(localStorage.getItem(KEY) ?? '0', 10));
+  private _hasUnread = signal(localStorage.getItem(KEY) === 'true');
 
-  seenCount = this._seenCount.asReadonly();
+  hasUnread = this._hasUnread.asReadonly();
 
-  markSeen(count: number) {
-    localStorage.setItem(KEY, String(count));
-    this._seenCount.set(count);
+  markUnread() {
+    localStorage.setItem(KEY, 'true');
+    this._hasUnread.set(true);
+  }
+
+  markSeen() {
+    localStorage.setItem(KEY, 'false');
+    this._hasUnread.set(false);
   }
 }
