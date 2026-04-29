@@ -1,7 +1,8 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { ToastService } from './toast.service';
 
 export interface Budget {
   id: string;
@@ -43,6 +44,7 @@ export class DataService {
   expenses     = signal<ExpenseItem[]>([]);
   dailyEntries = signal<DailyEntry[]>([]);
 
+  private toast = inject(ToastService);
   constructor(private http: HttpClient) {}
 
   // ── Load ──────────────────────────────────────────────────
@@ -90,8 +92,11 @@ export class DataService {
         })
       );
       this.dailyEntries.update(list => [this.mapDailyEntry(data), ...list]);
+      const icon = item.entryType === 'INCOME' ? '📈' : '📓';
+      this.toast.show(`₹${item.amount.toLocaleString()} ${item.entryType.toLowerCase()} entry added`, icon);
       return { ok: true };
     } catch (err: any) {
+      this.toast.show('Failed to save entry. Please try again.', '❌', 'warning');
       return { ok: false, error: err?.error?.message ?? 'Failed to save entry.' };
     }
   }
@@ -129,8 +134,11 @@ export class DataService {
         this.http.post<any[]>(`${environment.apiUrl}/api/budgets`, payload)
       );
       await this.loadBudgets();
+      const count = newBudgets.length;
+      this.toast.show(`${count} budget${count > 1 ? 's' : ''} created successfully!`, '💰');
       return { ok: true };
     } catch (err: any) {
+      this.toast.show('Failed to save budget. Please try again.', '❌', 'warning');
       return { ok: false, error: err?.error?.message ?? 'Failed to save budget.' };
     }
   }
@@ -171,7 +179,10 @@ export class DataService {
       const newItem = this.mapExpense(data);
       this.expenses.update(el => [newItem, ...el]);
       await this.loadBudgets();
-    } catch {}
+      this.toast.show(`₹${item.amount.toLocaleString()} expense added — ${item.category}`, item.icon || '💸');
+    } catch {
+      this.toast.show('Failed to add expense. Please try again.', '❌', 'warning');
+    }
   }
 
   async updateExpense(id: string, item: Omit<ExpenseItem, 'id'>): Promise<{ ok: boolean; error?: string }> {

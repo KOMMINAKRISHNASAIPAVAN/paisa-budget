@@ -1,6 +1,7 @@
 import { Component, computed, inject, effect } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { Sidebar } from './layout/sidebar/sidebar';
+import { ToastComponent } from './layout/toast/toast';
 import { AuthService } from './services/auth';
 import { DataService } from './services/data.service';
 import { ThemeService } from './services/theme.service';
@@ -9,7 +10,7 @@ import { filter, map, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Sidebar],
+  imports: [RouterOutlet, Sidebar, ToastComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
