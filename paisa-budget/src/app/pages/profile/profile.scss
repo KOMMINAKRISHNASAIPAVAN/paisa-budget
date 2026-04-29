@@ -1,3 +1,10 @@
+.info-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 8px 0;
+}
+
 /* ── Appearance card ─────────────────────────────────────── */
 .appearance-card {
   .appearance-title { font-size: 16px; color: var(--text-primary); margin-bottom: 16px; }

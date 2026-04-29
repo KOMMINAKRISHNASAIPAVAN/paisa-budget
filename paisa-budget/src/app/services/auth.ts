@@ -8,6 +8,8 @@ export interface UserAccount {
   id: number;
   name: string;
   phone: string;
+  monthlyIncome: number;
+  savingsGoal: number;
 }
 
 const TOKEN_KEY   = 'paisa_token';
@@ -33,7 +35,7 @@ export class AuthService {
           headers: { Authorization: `Bearer ${this.getToken()}` }
         })
       );
-      this.saveSession(this.getToken()!, { id: user.id, name: user.name, phone: user.phone });
+      this.saveSession(this.getToken()!, { id: user.id, name: user.name, phone: user.phone, monthlyIncome: user.monthlyIncome ?? 0, savingsGoal: user.savingsGoal ?? 0 });
     } catch { }
   }
 
@@ -42,7 +44,7 @@ export class AuthService {
       const res: any = await firstValueFrom(
         this.http.post(`${environment.apiUrl}/api/auth/register`, { name, phone, password })
       );
-      this.saveSession(res.token, { id: res.id, name: res.name, phone: res.phone });
+      this.saveSession(res.token, { id: res.id, name: res.name, phone: res.phone, monthlyIncome: res.monthlyIncome ?? 0, savingsGoal: res.savingsGoal ?? 0 });
       return { ok: true };
     } catch (err: any) {
       return { ok: false, error: err?.error?.message ?? 'Registration failed. Please try again.' };
@@ -54,7 +56,7 @@ export class AuthService {
       const res: any = await firstValueFrom(
         this.http.post(`${environment.apiUrl}/api/auth/login`, { phone, password })
       );
-      this.saveSession(res.token, { id: res.id, name: res.name, phone: res.phone });
+      this.saveSession(res.token, { id: res.id, name: res.name, phone: res.phone, monthlyIncome: res.monthlyIncome ?? 0, savingsGoal: res.savingsGoal ?? 0 });
       return { ok: true };
     } catch (err: any) {
       return { ok: false, error: err?.error?.message ?? 'Invalid phone or password.' };
@@ -68,10 +70,23 @@ export class AuthService {
           { headers: { Authorization: `Bearer ${this.getToken()}` } })
       );
       // Update token + session from backend response
-      this.saveSession(res.token, { id: res.id, name: res.name, phone: res.phone });
+      this.saveSession(res.token, { id: res.id, name: res.name, phone: res.phone, monthlyIncome: res.monthlyIncome ?? 0, savingsGoal: res.savingsGoal ?? 0 });
       return { ok: true };
     } catch (err: any) {
       return { ok: false, error: err?.error?.message ?? 'Failed to update name.' };
+    }
+  }
+
+  async updateFinancial(monthlyIncome: number, savingsGoal: number): Promise<{ ok: boolean; error?: string }> {
+    try {
+      const res: any = await firstValueFrom(
+        this.http.put(`${environment.apiUrl}/api/auth/update-financial`, { monthlyIncome, savingsGoal },
+          { headers: { Authorization: `Bearer ${this.getToken()}` } })
+      );
+      this.saveSession(res.token, { id: res.id, name: res.name, phone: res.phone, monthlyIncome: res.monthlyIncome ?? 0, savingsGoal: res.savingsGoal ?? 0 });
+      return { ok: true };
+    } catch (err: any) {
+      return { ok: false, error: err?.error?.message ?? 'Failed to update financial settings.' };
     }
   }
 

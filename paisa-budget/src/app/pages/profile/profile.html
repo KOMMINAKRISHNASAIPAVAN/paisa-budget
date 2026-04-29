@@ -124,34 +124,48 @@
       </div>
     </div>
 
-    <!-- <div class="card" style="margin-bottom: 20px;">
-      <h3 style="font-size: 16px; margin-bottom: 20px;">Financial Settings</h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Monthly Income</label>
-          <input type="text" value="₹55,000" class="form-input" />
-        </div>
-        <div class="form-group">
-          <label>Savings Goal</label>
-          <input type="text" value="₹5,00,000" class="form-input" />
-        </div>
-        <div class="form-group">
-          <label>Budget Period</label>
-          <select class="form-input">
-            <option selected>Monthly</option>
-            <option>Weekly</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Alert Threshold</label>
-          <select class="form-input">
-            <option>80%</option>
-            <option selected>90%</option>
-            <option>100%</option>
-          </select>
-        </div>
+    <div class="card" style="margin-bottom: 20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="font-size: 16px; margin:0;">Financial Settings</h3>
+        @if (!editingFinancial()) {
+          <button class="name-edit-btn" (click)="startEditFinancial()">✏️ Edit</button>
+        }
       </div>
-    </div> -->
+      @if (!editingFinancial()) {
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Monthly Income</label>
+            <div class="info-value">₹{{ auth.currentUser()?.monthlyIncome | number:'1.0-0' }}</div>
+          </div>
+          <div class="form-group">
+            <label>Savings Goal</label>
+            <div class="info-value">₹{{ auth.currentUser()?.savingsGoal | number:'1.0-0' }}</div>
+          </div>
+        </div>
+      } @else {
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Monthly Income (₹)</label>
+            <input type="number" class="form-input" [ngModel]="newMonthlyIncome()" (ngModelChange)="newMonthlyIncome.set($event)" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Savings Goal (₹)</label>
+            <input type="number" class="form-input" [ngModel]="newSavingsGoal()" (ngModelChange)="newSavingsGoal.set($event)" min="0" />
+          </div>
+        </div>
+        @if (financialError()) {
+          <div style="color:#ef4444; font-size:13px; margin-bottom:12px;">{{ financialError() }}</div>
+        }
+        <div style="display:flex; gap:10px; margin-top:8px;">
+          <button class="btn btn-primary name-save-btn" (click)="saveFinancial()" [disabled]="financialSaving()">
+            {{ financialSaving() ? ('common.saving' | t) : ('common.save' | t) }}
+          </button>
+          <button class="btn btn-outline name-cancel-btn" (click)="cancelEditFinancial()" [disabled]="financialSaving()">
+            {{ 'common.cancel' | t }}
+          </button>
+        </div>
+      }
+    </div>
 
     <!-- <div class="card" style="margin-bottom: 20px;">
       <h3 style="font-size: 16px; margin-bottom: 20px;">Notifications</h3>

@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { DecimalPipe } from '@angular/common';
 import { DataService, ExpenseItem, DailyEntry } from '../../services/data.service';
 import { AuthService } from '../../services/auth';
 import { ThemeService } from '../../services/theme.service';
@@ -12,7 +13,7 @@ const CAT_COLORS   = ['#4f6ef7','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4
 
 @Component({
   selector: 'app-profile',
-  imports: [FormsModule, RouterLink, TranslatePipe],
+  imports: [FormsModule, RouterLink, TranslatePipe, DecimalPipe],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
@@ -77,6 +78,37 @@ export class Profile {
       this.nameError.set('');
     } else {
       this.nameError.set(result.error ?? 'Failed to update name.');
+    }
+  }
+
+  // ── Financial settings editing ──────────────────────────────
+  editingFinancial   = signal(false);
+  newMonthlyIncome   = signal(0);
+  newSavingsGoal     = signal(0);
+  financialSaving    = signal(false);
+  financialError     = signal('');
+
+  startEditFinancial() {
+    this.newMonthlyIncome.set(this.auth.currentUser()?.monthlyIncome ?? 0);
+    this.newSavingsGoal.set(this.auth.currentUser()?.savingsGoal ?? 0);
+    this.financialError.set('');
+    this.editingFinancial.set(true);
+  }
+
+  cancelEditFinancial() {
+    this.editingFinancial.set(false);
+    this.financialError.set('');
+  }
+
+  async saveFinancial() {
+    this.financialSaving.set(true);
+    const result = await this.auth.updateFinancial(this.newMonthlyIncome(), this.newSavingsGoal());
+    this.financialSaving.set(false);
+    if (result.ok) {
+      this.editingFinancial.set(false);
+      this.financialError.set('');
+    } else {
+      this.financialError.set(result.error ?? 'Failed to save.');
     }
   }
 

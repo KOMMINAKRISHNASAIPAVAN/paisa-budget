@@ -48,6 +48,14 @@ public class AuthController {
         return ResponseEntity.ok(authService.updateName(userId, req.getName()));
     }
 
+    @PutMapping("/update-financial")
+    public ResponseEntity<AuthResponse> updateFinancial(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody UpdateFinancialRequest req) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        return ResponseEntity.ok(authService.updateFinancial(userId, req.getMonthlyIncome(), req.getSavingsGoal()));
+    }
+
     @PostMapping("/forgot-password")
     public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest req) {
         String otp = passwordResetService.generateOtp(req.getPhone());
