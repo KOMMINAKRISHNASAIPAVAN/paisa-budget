@@ -7,9 +7,10 @@ import { Dashboard }    from './pages/dashboard/dashboard';
 import { Budgets }      from './pages/budgets/budgets';
 import { Expense }      from './pages/expense/expense';
 import { Transactions } from './pages/transactions/transactions';
-import { Insights }     from './pages/insights/insights';
-import { Profile }      from './pages/profile/profile';
-import { Daily }        from './pages/daily/daily';
+import { Insights }       from './pages/insights/insights';
+import { Notifications }  from './pages/notifications/notifications';
+import { Profile }        from './pages/profile/profile';
+import { Daily }          from './pages/daily/daily';
 
 export const routes: Routes = [
   { path: '',           redirectTo: 'login', pathMatch: 'full' },
@@ -20,7 +21,8 @@ export const routes: Routes = [
   { path: 'budgets',    component: Budgets,      canActivate: [authGuard] },
   { path: 'expense',    component: Expense,      canActivate: [authGuard] },
   { path: 'transactions', component: Transactions, canActivate: [authGuard] },
-  { path: 'insights',   component: Insights,     canActivate: [authGuard] },
+  { path: 'insights',       component: Insights,       canActivate: [authGuard] },
+  { path: 'notifications',  component: Notifications,  canActivate: [authGuard] },
   { path: 'daily',      component: Daily,        canActivate: [authGuard] },
   { path: 'profile',    component: Profile,      canActivate: [authGuard] },
 ];

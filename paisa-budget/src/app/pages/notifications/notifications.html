@@ -1,0 +1,82 @@
+<div class="page-header">
+  <div class="page-header-row">
+    <button class="back-btn" (click)="location.back()">
+      <span>‹</span> {{ 'common.back' | t }}
+    </button>
+    <div>
+      <h1>Notifications</h1>
+      <p>Smart alerts and updates based on your finances</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Stat Cards ──────────────────────────────────────────── -->
+<div class="notif-stats" style="margin-bottom: 24px;">
+  <div class="stat-card">
+    <div class="stat-label">Total</div>
+    <div class="stat-value">{{ allNotifications().length }}</div>
+    <div class="stat-change" [style.color]="'var(--text-muted)'">All notifications</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Alerts</div>
+    <div class="stat-value" [style.color]="alertCount() > 0 ? 'var(--danger)' : 'inherit'">{{ alertCount() }}</div>
+    <div class="stat-change" [style.color]="alertCount() > 0 ? 'var(--danger)' : 'var(--text-muted)'">
+      {{ alertCount() > 0 ? 'Need attention' : 'All clear' }}
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Achievements</div>
+    <div class="stat-value" [style.color]="achievementCount() > 0 ? '#f59e0b' : 'inherit'">{{ achievementCount() }}</div>
+    <div class="stat-change" [style.color]="'var(--text-muted)'">This month</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Tips</div>
+    <div class="stat-value" [style.color]="'var(--accent)'">{{ tipCount() }}</div>
+    <div class="stat-change" [style.color]="'var(--text-muted)'">Financial advice</div>
+  </div>
+</div>
+
+<!-- ── Filter Tabs ─────────────────────────────────────────── -->
+<div class="filter-tabs" style="margin-bottom: 20px;">
+  <button class="filter-tab" [class.active]="activeFilter() === 'all'" (click)="setFilter('all')">
+    All <span class="tab-count">{{ allNotifications().length }}</span>
+  </button>
+  <button class="filter-tab alert" [class.active]="activeFilter() === 'alert'" (click)="setFilter('alert')">
+    🚨 Alerts <span class="tab-count">{{ alertCount() }}</span>
+  </button>
+  <button class="filter-tab achievement" [class.active]="activeFilter() === 'achievement'" (click)="setFilter('achievement')">
+    🏆 Achievements <span class="tab-count">{{ achievementCount() }}</span>
+  </button>
+  <button class="filter-tab summary" [class.active]="activeFilter() === 'summary'" (click)="setFilter('summary')">
+    📊 Summaries <span class="tab-count">{{ summaryCount() }}</span>
+  </button>
+  <button class="filter-tab tip" [class.active]="activeFilter() === 'tip'" (click)="setFilter('tip')">
+    💡 Tips <span class="tab-count">{{ tipCount() }}</span>
+  </button>
+</div>
+
+<!-- ── Notification List ───────────────────────────────────── -->
+@if (filtered().length === 0) {
+  <div class="card">
+    <div class="notif-empty">
+      <span>🔔</span>
+      <p>No notifications in this category yet.<br>Add expenses and budgets to get started.</p>
+    </div>
+  </div>
+} @else {
+  <div class="notif-list">
+    @for (n of filtered(); track n.id) {
+      <div class="notif-card" [class]="'notif-' + n.type">
+        <div class="notif-icon">{{ n.icon }}</div>
+        <div class="notif-body">
+          <div class="notif-header-row">
+            <span class="notif-title">{{ n.title }}</span>
+            <span class="notif-badge" [style.background]="typeBadgeColor(n.type)">{{ typeLabel(n.type) }}</span>
+          </div>
+          <div class="notif-text">{{ n.text }}</div>
+          <div class="notif-time">{{ n.time }}</div>
+        </div>
+      </div>
+    }
+  </div>
+}
