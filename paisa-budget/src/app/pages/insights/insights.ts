@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { Location } from '@angular/common';
 import { DataService } from '../../services/data.service';
+import { AuthService } from '../../services/auth';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
 const CAT_COLORS = [
@@ -21,6 +22,7 @@ export class Insights {
   Math     = Math;
   location = inject(Location);
   private data = inject(DataService);
+  private auth = inject(AuthService);
 
   hasData = computed(() => this.data.expenses().length > 0);
 
@@ -84,11 +86,16 @@ export class Insights {
     return Math.round(this.data.thisMonthTotal() / daysPassed);
   });
 
+  monthlyIncome = computed(() => this.auth.currentUser()?.monthlyIncome ?? 0);
+  savingsGoal   = computed(() => this.auth.currentUser()?.savingsGoal ?? 0);
+
+  // Uses actual income when set, otherwise falls back to budget total
   savingsRate = computed(() => {
-    const total = this.data.budgets().filter(b => b.active)
-                      .reduce((s, b) => s + b.limit, 0);
+    const income = this.monthlyIncome();
+    const spent  = this.data.thisMonthTotal();
+    if (income > 0) return Math.max(0, Math.round(((income - spent) / income) * 100));
+    const total = this.data.budgets().filter(b => b.active).reduce((s, b) => s + b.limit, 0);
     if (!total) return 0;
-    const spent = this.data.thisMonthTotal();
     return Math.max(0, Math.round(((total - spent) / total) * 100));
   });
 
@@ -148,6 +155,42 @@ export class Insights {
         icon:  '📈',
         title: 'Start Investing',
         text:  "You haven't set an Invest budget yet. Even ₹500/week in SIP can build long-term wealth.",
+      });
+    }
+
+    // Income vs expense tip
+    const income = this.monthlyIncome();
+    const spent  = this.data.thisMonthTotal();
+    if (income > 0 && spent > income) {
+      tips.push({
+        icon:  '🚨',
+        title: 'Spending Exceeds Income',
+        text:  `You've spent ₹${(spent - income).toLocaleString()} more than your monthly income of ₹${income.toLocaleString()}. Consider cutting back immediately.`,
+      });
+    } else if (income > 0 && spent > 0 && spent <= income) {
+      const saved = income - spent;
+      const goal  = this.savingsGoal();
+      if (goal > 0 && saved >= goal) {
+        tips.push({
+          icon:  '🏆',
+          title: 'Savings Goal Reached!',
+          text:  `You've saved ₹${saved.toLocaleString()} this month, hitting your ₹${goal.toLocaleString()} savings goal. Great discipline!`,
+        });
+      } else if (goal > 0 && saved < goal) {
+        tips.push({
+          icon:  '🎯',
+          title: 'Savings Goal In Progress',
+          text:  `You've saved ₹${saved.toLocaleString()} so far. You need ₹${(goal - saved).toLocaleString()} more to reach your ₹${goal.toLocaleString()} savings goal.`,
+        });
+      }
+    }
+
+    // Prompt to set income if not set
+    if (!income) {
+      tips.push({
+        icon:  '💡',
+        title: 'Set Your Monthly Income',
+        text:  'Go to Profile → Financial Settings to set your monthly income. This enables real savings tracking and better insights.',
       });
     }
 

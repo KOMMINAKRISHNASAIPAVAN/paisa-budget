@@ -19,22 +19,45 @@
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">{{ 'dashboard.remaining' | t }}</div>
-    <div class="stat-value" [style.color]="totalSavings() < 0 ? 'var(--danger)' : 'inherit'">
+    <div class="stat-label">{{ monthlyIncome() > 0 ? 'Net Saved' : ('dashboard.remaining' | t) }}</div>
+    <div class="stat-value" [style.color]="totalSavings() < 0 ? 'var(--danger)' : 'var(--success)'">
       ₹{{ totalSavings().toLocaleString() }}
     </div>
     <div class="stat-change" [class.positive]="totalSavings() > 0" [class.negative]="totalSavings() < 0">
-      {{ totalSavings() > 0 ? ('dashboard.underBudget' | t) : totalSavings() < 0 ? ('dashboard.overBudget' | t) : '—' }}
+      {{ monthlyIncome() > 0 ? (totalSavings() >= 0 ? 'From income this month' : 'Over income this month') : (totalSavings() > 0 ? ('dashboard.underBudget' | t) : totalSavings() < 0 ? ('dashboard.overBudget' | t) : '—') }}
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">{{ 'dashboard.totalExpenses' | t }}</div>
-    <div class="stat-value">{{ recentTransactions().length }}</div>
-    <div class="stat-change" [style.color]="recentTransactions().length > 0 ? 'var(--text-muted)' : 'var(--text-muted)'">
-      {{ recentTransactions().length > 0 ? ('dashboard.recentRecords' | t) : ('dashboard.noEntries' | t) }}
+    <div class="stat-label">{{ monthlyIncome() > 0 ? 'Monthly Income' : ('dashboard.totalExpenses' | t) }}</div>
+    <div class="stat-value" [style.color]="monthlyIncome() > 0 ? 'var(--accent)' : 'inherit'">
+      {{ monthlyIncome() > 0 ? '₹' + monthlyIncome().toLocaleString() : recentTransactions().length }}
+    </div>
+    <div class="stat-change" [style.color]="'var(--text-muted)'">
+      {{ monthlyIncome() > 0 ? 'Set in profile' : (recentTransactions().length > 0 ? ('dashboard.recentRecords' | t) : ('dashboard.noEntries' | t)) }}
     </div>
   </div>
 </div>
+
+@if (savingsGoal() > 0) {
+  <div class="card" style="margin-bottom: 24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 style="font-size:15px; margin:0;">Savings Goal Progress</h3>
+      <span style="font-size:13px; color:var(--text-muted);">₹{{ (monthlyIncome() - monthlyExpense()).toLocaleString() }} / ₹{{ savingsGoal().toLocaleString() }}</span>
+    </div>
+    <div class="progress-bar" style="height:12px; border-radius:8px;">
+      <div class="progress-fill" [style.width.%]="savingsGoalProgress()"
+           [style.background]="savingsGoalProgress() >= 100 ? 'var(--success)' : 'var(--accent)'"
+           style="border-radius:8px; transition:width 0.4s ease;">
+      </div>
+    </div>
+    <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:12px; color:var(--text-muted);">
+      <span>{{ savingsGoalProgress() }}% of goal reached this month</span>
+      @if (savingsGoalProgress() >= 100) {
+        <span style="color:var(--success); font-weight:600;">Goal achieved!</span>
+      }
+    </div>
+  </div>
+}
 
 <div class="grid-2" style="margin-bottom: 24px;">
   <div class="card">
