@@ -34,7 +34,7 @@ public class AuthService {
         userRepository.save(user);
 
         String token = jwtUtil.generateToken(user.getId());
-        return new AuthResponse(token, user.getId(), user.getName(), user.getPhone());
+        return new AuthResponse(token, user.getId(), user.getName(), user.getPhone(), user.getMonthlyIncome(), user.getSavingsGoal());
     }
 
     public AuthResponse login(LoginRequest req) {
@@ -45,7 +45,7 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid phone or password");
 
         String token = jwtUtil.generateToken(user.getId());
-        return new AuthResponse(token, user.getId(), user.getName(), user.getPhone());
+        return new AuthResponse(token, user.getId(), user.getName(), user.getPhone(), user.getMonthlyIncome(), user.getSavingsGoal());
     }
 
     public User getMe(Long userId) {
@@ -60,6 +60,17 @@ public class AuthService {
         user.setName(name);
         userRepository.save(user);
         String token = jwtUtil.generateToken(user.getId());
-        return new AuthResponse(token, user.getId(), user.getName(), user.getPhone());
+        return new AuthResponse(token, user.getId(), user.getName(), user.getPhone(), user.getMonthlyIncome(), user.getSavingsGoal());
+    }
+
+    @Transactional
+    public AuthResponse updateFinancial(Long userId, Double monthlyIncome, Double savingsGoal) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        if (monthlyIncome != null) user.setMonthlyIncome(monthlyIncome);
+        if (savingsGoal   != null) user.setSavingsGoal(savingsGoal);
+        userRepository.save(user);
+        String token = jwtUtil.generateToken(user.getId());
+        return new AuthResponse(token, user.getId(), user.getName(), user.getPhone(), user.getMonthlyIncome(), user.getSavingsGoal());
     }
 }
