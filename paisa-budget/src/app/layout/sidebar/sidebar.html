@@ -5,7 +5,7 @@
     <span class="brand-name">Paisa</span>
     <a routerLink="/notifications" class="notif-bell" title="Notifications">
       🔔
-      @if (alertCount() > 0) {
+      @if (showBadge()) {
         <span class="notif-badge">{{ alertCount() }}</span>
       }
     </a>
@@ -43,7 +43,7 @@
   <div style="display:flex; align-items:center; gap:10px;">
     <a routerLink="/notifications" class="notif-bell mobile">
       🔔
-      @if (alertCount() > 0) {
+      @if (showBadge()) {
         <span class="notif-badge">{{ alertCount() }}</span>
       }
     </a>

@@ -1,7 +1,8 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Location } from '@angular/common';
 import { DataService } from '../../services/data.service';
 import { AuthService } from '../../services/auth';
+import { NotifStateService } from '../../services/notif-state.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
 type NotifType = 'alert' | 'tip' | 'achievement' | 'summary';
@@ -24,9 +25,20 @@ const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct
   styleUrl: './notifications.scss',
 })
 export class Notifications {
-  location     = inject(Location);
-  private data = inject(DataService);
-  private auth = inject(AuthService);
+  location           = inject(Location);
+  private data       = inject(DataService);
+  private auth       = inject(AuthService);
+  private notifState = inject(NotifStateService);
+
+  constructor() {
+    // Mark alerts as seen whenever the user is on this page
+    effect(() => {
+      const overBudget = this.data.budgets().filter(b => b.active && b.spent > b.limit).length;
+      const income     = this.auth.currentUser()?.monthlyIncome ?? 0;
+      const overIncome = income > 0 && this.data.thisMonthTotal() > income ? 1 : 0;
+      this.notifState.markSeen(overBudget + overIncome);
+    });
+  }
 
   activeFilter = signal<'all' | NotifType>('all');
 
