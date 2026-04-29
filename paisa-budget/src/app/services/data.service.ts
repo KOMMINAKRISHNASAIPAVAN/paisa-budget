@@ -87,7 +87,9 @@ export class DataService {
       );
       this.storedNotifications.update(list => [{ id: n.id, title: n.title, message: n.message, icon: n.icon, type: n.type, read: n.read, createdAt: n.createdAt }, ...list]);
       this.notifState.markUnread();
-    } catch {}
+    } catch (err: any) {
+      console.error('createNotification failed:', err?.status, err?.message, err?.error);
+    }
   }
 
   async markNotificationsRead() {
@@ -237,6 +239,7 @@ export class DataService {
       const matchedBudget = this.budgets().find(b =>
         b.active && b.category.toLowerCase() === item.category.toLowerCase()
       );
+      console.log('[budget-check]', item.category, matchedBudget ? `spent=${matchedBudget.spent} limit=${matchedBudget.limit}` : 'no match');
       if (matchedBudget && matchedBudget.spent >= matchedBudget.limit) {
         const over = matchedBudget.spent - matchedBudget.limit;
         const msg = over > 0
