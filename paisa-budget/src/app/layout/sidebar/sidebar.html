@@ -3,6 +3,12 @@
   <div class="sidebar-brand">
     <span class="brand-icon">💹</span>
     <span class="brand-name">Paisa</span>
+    <a routerLink="/notifications" class="notif-bell" title="Notifications">
+      🔔
+      @if (alertCount() > 0) {
+        <span class="notif-badge">{{ alertCount() }}</span>
+      }
+    </a>
   </div>
 
   <ul class="nav-list">
@@ -34,10 +40,18 @@
     <span>💹</span>
     <span>Paisa Budget</span>
   </div>
-  <button class="logout-btn-mobile" (click)="auth.logout()">
-    <span class="logout-icon">🚪</span>
-    <span class="logout-text">{{ 'nav.logout' | t }}</span>
-  </button>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <a routerLink="/notifications" class="notif-bell mobile">
+      🔔
+      @if (alertCount() > 0) {
+        <span class="notif-badge">{{ alertCount() }}</span>
+      }
+    </a>
+    <button class="logout-btn-mobile" (click)="auth.logout()">
+      <span class="logout-icon">🚪</span>
+      <span class="logout-text">{{ 'nav.logout' | t }}</span>
+    </button>
+  </div>
 </header>
 
 <!-- ── Mobile Bottom Navigation ───────────────────────────── -->
