@@ -230,16 +230,22 @@ export class DataService {
       );
       const newItem = this.mapExpense(data);
       this.expenses.update(el => [newItem, ...el]);
-      const overBefore = new Set(this.budgets().filter(b => b.active && b.spent > b.limit).map(b => b.id));
       await this.loadBudgets();
-      const newlyOver = this.budgets().filter(b => b.active && b.spent > b.limit && !overBefore.has(b.id));
       this.toast.show(`₹${item.amount.toLocaleString()} expense added — ${item.category}`, item.icon || '💸');
-      for (const b of newlyOver) {
-        const over = b.spent - b.limit;
-        this.toast.show(`${b.icon} ${b.category} budget exceeded by ₹${over.toLocaleString()}!`, '⚠️', 'warning', 5000);
+
+      // Check the budget for this expense's category after reload
+      const matchedBudget = this.budgets().find(b =>
+        b.active && b.category.toLowerCase() === item.category.toLowerCase()
+      );
+      if (matchedBudget && matchedBudget.spent >= matchedBudget.limit) {
+        const over = matchedBudget.spent - matchedBudget.limit;
+        const msg = over > 0
+          ? `${matchedBudget.icon} ${matchedBudget.category} budget exceeded by ₹${over.toLocaleString()}!`
+          : `${matchedBudget.icon} ${matchedBudget.category} budget fully used!`;
+        this.toast.show(msg, '⚠️', 'warning', 5000);
         await this.createNotification(
-          `${b.icon} ${b.category} Budget Exceeded`,
-          `You've gone ₹${over.toLocaleString()} over your ₹${b.limit.toLocaleString()} ${b.category} budget. Spent: ₹${b.spent.toLocaleString()}.`,
+          `${matchedBudget.icon} ${matchedBudget.category} Budget Exceeded`,
+          `You've spent ₹${matchedBudget.spent.toLocaleString()} against your ₹${matchedBudget.limit.toLocaleString()} ${matchedBudget.category} budget.${over > 0 ? ` You are ₹${over.toLocaleString()} over.` : ''}`,
           '🚨', 'ALERT'
         );
       }
