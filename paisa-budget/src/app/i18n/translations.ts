@@ -11,7 +11,7 @@ export const translations = {
     nav: {
       dashboard: 'Dashboard', budgets: 'Budgets', expense: 'Expense',
       daily: 'Daily Tracker', transactions: 'Transactions',
-      insights: 'Insights', profile: 'Profile', logout: 'Logout',
+      insights: 'Insights', notifications: 'Notifications', profile: 'Profile', logout: 'Logout',
     },
     login: {
       tagline: 'Save smart. Spend wise. Live better.',
@@ -178,7 +178,7 @@ export const translations = {
     nav: {
       dashboard: 'डैशबोर्ड', budgets: 'बजट', expense: 'खर्च',
       daily: 'दैनिक ट्रैकर', transactions: 'लेनदेन',
-      insights: 'जानकारी', profile: 'प्रोफ़ाइल', logout: 'लॉग आउट',
+      insights: 'जानकारी', notifications: 'सूचनाएं', profile: 'प्रोफ़ाइल', logout: 'लॉग आउट',
     },
     login: {
       tagline: 'स्मार्ट बचत। बुद्धिमान खर्च। बेहतर जीवन।',
@@ -345,7 +345,7 @@ export const translations = {
     nav: {
       dashboard: 'డాష్‌బోర్డ్', budgets: 'బడ్జెట్లు', expense: 'ఖర్చులు',
       daily: 'రోజువారీ ట్రాకర్', transactions: 'లావాదేవీలు',
-      insights: 'విశ్లేషణలు', profile: 'ప్రొఫైల్', logout: 'లాగ్ అవుట్',
+      insights: 'విశ్లేషణలు', notifications: 'నోటిఫికేషన్లు', profile: 'ప్రొఫైల్', logout: 'లాగ్ అవుట్',
     },
     login: {
       tagline: 'స్మార్ట్‌గా ఆదా చేయండి. తెలివిగా ఖర్చు చేయండి. మెరుగ్గా జీవించండి.',

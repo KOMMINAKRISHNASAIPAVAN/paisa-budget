@@ -13,10 +13,11 @@ export class Sidebar {
   auth = inject(AuthService);
 
   navItems = [
-    { key: 'nav.dashboard', icon: '🏠', route: '/dashboard' },
-    { key: 'nav.budgets',   icon: '💰', route: '/budgets' },
-    { key: 'nav.expense',   icon: '💸', route: '/expense' },
-    { key: 'nav.daily',     icon: '📓', route: '/daily' },
-    { key: 'nav.profile',   icon: '👤', route: '/profile' },
+    { key: 'nav.dashboard',      icon: '🏠', route: '/dashboard' },
+    { key: 'nav.budgets',        icon: '💰', route: '/budgets' },
+    { key: 'nav.expense',        icon: '💸', route: '/expense' },
+    { key: 'nav.daily',          icon: '📓', route: '/daily' },
+    { key: 'nav.notifications',  icon: '🔔', route: '/notifications' },
+    { key: 'nav.profile',        icon: '👤', route: '/profile' },
   ];
 }
