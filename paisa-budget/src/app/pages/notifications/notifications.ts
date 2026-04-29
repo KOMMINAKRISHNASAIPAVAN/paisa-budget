@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Location } from '@angular/common';
 import { DataService } from '../../services/data.service';
 import { AuthService } from '../../services/auth';
@@ -31,13 +31,7 @@ export class Notifications {
   private notifState = inject(NotifStateService);
 
   constructor() {
-    // Mark alerts as seen whenever the user is on this page
-    effect(() => {
-      const overBudget = this.data.budgets().filter(b => b.active && b.spent > b.limit).length;
-      const income     = this.auth.currentUser()?.monthlyIncome ?? 0;
-      const overIncome = income > 0 && this.data.thisMonthTotal() > income ? 1 : 0;
-      this.notifState.markSeen(overBudget + overIncome);
-    });
+    this.notifState.markSeen();
   }
 
   activeFilter = signal<'all' | NotifType>('all');
