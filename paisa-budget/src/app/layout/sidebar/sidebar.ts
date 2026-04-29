@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { DataService } from '../../services/data.service';
+import { NotifStateService } from '../../services/notif-state.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
 @Component({
@@ -11,8 +12,9 @@ import { TranslatePipe } from '../../pipes/translate.pipe';
   styleUrl: './sidebar.scss',
 })
 export class Sidebar {
-  auth = inject(AuthService);
-  private data = inject(DataService);
+  auth        = inject(AuthService);
+  private data        = inject(DataService);
+  private notifState  = inject(NotifStateService);
 
   navItems = [
     { key: 'nav.dashboard', icon: '🏠', route: '/dashboard' },
@@ -22,11 +24,13 @@ export class Sidebar {
     { key: 'nav.profile',   icon: '👤', route: '/profile' },
   ];
 
-  // Badge count: over-budget items + income exceeded
   alertCount = computed(() => {
     const overBudget = this.data.budgets().filter(b => b.active && b.spent > b.limit).length;
     const income     = this.auth.currentUser()?.monthlyIncome ?? 0;
     const overIncome = income > 0 && this.data.thisMonthTotal() > income ? 1 : 0;
     return overBudget + overIncome;
   });
+
+  // Only show badge when alert count increased since user last visited
+  showBadge = computed(() => this.alertCount() > this.notifState.seenCount());
 }
