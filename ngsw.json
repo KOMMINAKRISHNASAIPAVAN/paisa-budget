@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1777467540203,
+  "timestamp": 1777526437280,
   "index": "/paisa-budget/index.html",
   "assetGroups": [
     {
@@ -15,7 +15,7 @@
         "/paisa-budget/chunk-X7TKPZZP.js",
         "/paisa-budget/favicon.ico",
         "/paisa-budget/index.html",
-        "/paisa-budget/main-TIV5RV7E.js",
+        "/paisa-budget/main-Y5NKDZLV.js",
         "/paisa-budget/manifest.webmanifest",
         "/paisa-budget/styles-TQ5A6TAK.css",
         "/paisa-budget/worker.min.js"
@@ -55,8 +55,8 @@
     "/paisa-budget/icons/icon-512x512.png": "1de182f76f7329dfa8f9fcdd1fdcdd695bea6a99",
     "/paisa-budget/icons/icon-72x72.png": "aa88a6096bd973be7f6d7a5489bfa6bc2463f8c4",
     "/paisa-budget/icons/icon-96x96.png": "7fb8f59c30ce2ff12c700321a0b39e14b3dc8f95",
-    "/paisa-budget/index.html": "c2a581584d23ff8ed3543c2a25828674820fa2db",
-    "/paisa-budget/main-TIV5RV7E.js": "073a87645e67878b0d3b99f7549e56e33d218f5a",
+    "/paisa-budget/index.html": "2bdb050f6639aa418dc2adacc902339af20c1e07",
+    "/paisa-budget/main-Y5NKDZLV.js": "5057d20879be08242b9e5f9fcd27e1427e1ef3ea",
     "/paisa-budget/manifest.webmanifest": "c3cb41bd4d9714f17c0603c77fa113f0b9022243",
     "/paisa-budget/styles-TQ5A6TAK.css": "02d43d983dfe1130c1f09ea38355515355e67eb3",
     "/paisa-budget/worker.min.js": "fcdfc690d75dfa8d3e121b0b35b463f7dcabfc38"
