@@ -34,11 +34,11 @@ export class Budgets {
   formError    = signal('');
 
   // ── Rollover ──────────────────────────────────────────
-  showRollover     = signal(false);
-  rolloverBudgets  = signal<Budget[]>([]);
-  rolloverChoices  = signal<Record<string, boolean>>({});
-  rolloverSaving   = signal(false);
-  rolloverDone     = signal(false); // prevents re-triggering per session
+  showRollover    = signal(false);
+  rolloverItems   = signal<{ budget: Budget; reason: 'week' | 'month' }[]>([]);
+  rolloverChoices = signal<Record<string, boolean>>({});
+  rolloverSaving  = signal(false);
+  rolloverDone    = signal(false);
 
   constructor() {
     effect(() => {
@@ -50,23 +50,36 @@ export class Budgets {
   }
 
   private detectExpiredBudgets(budgets: Budget[]) {
-    const now          = new Date();
-    const currentMonth = now.toLocaleString('default', { month: 'long' }) + ' ' + now.getFullYear();
-    const currentWeek  = this.getWeekNumber(now);
+    const now             = new Date();
+    const currentMonth    = now.toLocaleString('default', { month: 'long' }) + ' ' + now.getFullYear();
+    const currentMonthShort = now.toLocaleString('default', { month: 'short' }) + ' ' + now.getFullYear();
+    const currentWeek     = this.getWeekNumber(now);
 
-    const expired = budgets.filter(b => {
-      if (!b.active) return false;
+    const items: { budget: Budget; reason: 'week' | 'month' }[] = [];
+
+    for (const b of budgets) {
+      if (!b.active) continue;
       const remaining = b.limit - b.spent;
-      if (remaining <= 0) return false;
-      if (b.type === 'monthly') return b.period !== currentMonth;
-      const weekNum = parseInt(b.period.match(/Week (\d+)/)?.[1] ?? '0');
-      return weekNum !== currentWeek;
-    });
+      if (remaining <= 0) continue;
 
-    if (expired.length > 0) {
-      this.rolloverBudgets.set(expired);
+      if (b.type === 'monthly') {
+        if (b.period !== currentMonth) items.push({ budget: b, reason: 'month' });
+      } else {
+        // Weekly: detect week-end AND/OR month-end
+        const weekNum   = parseInt(b.period.match(/Week (\d+)/)?.[1] ?? '0');
+        const monthPart = b.period.match(/·\s*(.+)$/)?.[1]?.trim() ?? '';
+        const weekExpired  = weekNum !== currentWeek;
+        const monthExpired = monthPart !== '' && monthPart !== currentMonthShort;
+        // Month-end takes priority label; else week-end
+        if (monthExpired) items.push({ budget: b, reason: 'month' });
+        else if (weekExpired) items.push({ budget: b, reason: 'week' });
+      }
+    }
+
+    if (items.length > 0) {
+      this.rolloverItems.set(items);
       const choices: Record<string, boolean> = {};
-      expired.forEach(b => choices[b.id] = true);
+      items.forEach(i => choices[i.budget.id] = true);
       this.rolloverChoices.set(choices);
       this.showRollover.set(true);
     }
@@ -79,22 +92,33 @@ export class Budgets {
 
   async submitRollover() {
     this.rolloverSaving.set(true);
-    const choices  = this.rolloverChoices();
-    const now      = new Date();
-    for (const b of this.rolloverBudgets()) {
+    const choices = this.rolloverChoices();
+    const now     = new Date();
+    const monthLong  = now.toLocaleString('default', { month: 'long' });
+    const monthShort = now.toLocaleString('default', { month: 'short' });
+    const year       = now.getFullYear();
+    const weekNum    = this.getWeekNumber(now);
+
+    for (const { budget: b } of this.rolloverItems()) {
       const wantsCarryover = choices[b.id] ?? true;
       const carryover      = wantsCarryover ? Math.max(0, b.limit - b.spent) : 0;
       const newPeriod      = b.type === 'monthly'
-        ? now.toLocaleString('default', { month: 'long' }) + ' ' + now.getFullYear()
-        : 'Week ' + this.getWeekNumber(now) + ' (current)';
+        ? `${monthLong} ${year}`
+        : `Week ${weekNum} · ${monthShort} ${year}`;
       await this.data.rolloverBudget(b.id, carryover, newPeriod);
     }
     this.rolloverSaving.set(false);
     this.showRollover.set(false);
   }
 
-  skipRollover() {
-    this.showRollover.set(false);
+  skipRollover() { this.showRollover.set(false); }
+
+  rolloverReasonLabel(reason: 'week' | 'month'): string {
+    return reason === 'week' ? 'Week Ended' : 'Month Ended';
+  }
+
+  rolloverReasonColor(reason: 'week' | 'month'): string {
+    return reason === 'week' ? 'var(--accent)' : '#f59e0b';
   }
 
   // ── Step 1 ───────────────────────────────────────────
@@ -215,8 +239,8 @@ export class Budgets {
 
     const now    = new Date();
     const period = this.periodType() === 'monthly'
-      ? now.toLocaleString('default', { month: 'long' }) + ' ' + now.getFullYear()
-      : 'Week ' + this.getWeekNumber(now) + ' (current)';
+      ? `${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`
+      : `Week ${this.getWeekNumber(now)} · ${now.toLocaleString('default', { month: 'short' })} ${now.getFullYear()}`;
 
     const newBudgets: Budget[] = filled.map(a => ({
       id:          crypto.randomUUID(),
