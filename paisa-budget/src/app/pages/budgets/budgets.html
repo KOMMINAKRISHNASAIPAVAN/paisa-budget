@@ -3,10 +3,7 @@
     <h1>{{ 'budgets.title' | t }}</h1>
     <p>{{ 'budgets.desc' | t }}</p>
   </div>
-  <div style="display:flex; gap:8px; flex-wrap:wrap;">
-    <button class="btn btn-outline" (click)="openQuickAdd()">＋ Add Category</button>
-    <button class="btn btn-primary" (click)="openModal()">{{ 'budgets.newBudget' | t }}</button>
-  </div>
+  <button class="btn btn-primary" (click)="openModal()">{{ 'budgets.newBudget' | t }}</button>
 </div>
 
 @if (overIncome()) {
@@ -349,7 +346,7 @@
 
           <!-- Add custom category button -->
           <button type="button" class="add-custom-btn" (click)="addCustomCategory()">
-            <span class="add-custom-icon">＋</span> {{ 'budgets.addCustom' | t }}
+            <span class="add-custom-icon">+</span> {{ 'budgets.addCustom' | t }}
           </button>
 
           <div class="modal-actions">
