@@ -1,4 +1,4 @@
-import { Component, computed, signal, inject } from '@angular/core';
+import { Component, computed, signal, inject, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgTemplateOutlet } from '@angular/common';
 import { DataService, Budget } from '../../services/data.service';
@@ -32,6 +32,70 @@ export class Budgets {
   showModal    = signal(false);
   step         = signal<1 | 2 | 3>(1);
   formError    = signal('');
+
+  // ── Rollover ──────────────────────────────────────────
+  showRollover     = signal(false);
+  rolloverBudgets  = signal<Budget[]>([]);
+  rolloverChoices  = signal<Record<string, boolean>>({});
+  rolloverSaving   = signal(false);
+  rolloverDone     = signal(false); // prevents re-triggering per session
+
+  constructor() {
+    effect(() => {
+      const budgets = this.data.budgets();
+      if (!this.rolloverDone() && budgets.length > 0) {
+        this.detectExpiredBudgets(budgets);
+      }
+    });
+  }
+
+  private detectExpiredBudgets(budgets: Budget[]) {
+    const now          = new Date();
+    const currentMonth = now.toLocaleString('default', { month: 'long' }) + ' ' + now.getFullYear();
+    const currentWeek  = this.getWeekNumber(now);
+
+    const expired = budgets.filter(b => {
+      if (!b.active) return false;
+      const remaining = b.limit - b.spent;
+      if (remaining <= 0) return false;
+      if (b.type === 'monthly') return b.period !== currentMonth;
+      const weekNum = parseInt(b.period.match(/Week (\d+)/)?.[1] ?? '0');
+      return weekNum !== currentWeek;
+    });
+
+    if (expired.length > 0) {
+      this.rolloverBudgets.set(expired);
+      const choices: Record<string, boolean> = {};
+      expired.forEach(b => choices[b.id] = true);
+      this.rolloverChoices.set(choices);
+      this.showRollover.set(true);
+    }
+    this.rolloverDone.set(true);
+  }
+
+  toggleRolloverChoice(id: string) {
+    this.rolloverChoices.update(c => ({ ...c, [id]: !c[id] }));
+  }
+
+  async submitRollover() {
+    this.rolloverSaving.set(true);
+    const choices  = this.rolloverChoices();
+    const now      = new Date();
+    for (const b of this.rolloverBudgets()) {
+      const wantsCarryover = choices[b.id] ?? true;
+      const carryover      = wantsCarryover ? Math.max(0, b.limit - b.spent) : 0;
+      const newPeriod      = b.type === 'monthly'
+        ? now.toLocaleString('default', { month: 'long' }) + ' ' + now.getFullYear()
+        : 'Week ' + this.getWeekNumber(now) + ' (current)';
+      await this.data.rolloverBudget(b.id, carryover, newPeriod);
+    }
+    this.rolloverSaving.set(false);
+    this.showRollover.set(false);
+  }
+
+  skipRollover() {
+    this.showRollover.set(false);
+  }
 
   // ── Step 1 ───────────────────────────────────────────
   totalBudget = signal<number | null>(null);
@@ -162,6 +226,7 @@ export class Budgets {
       period,
       spent:       0,
       limit:       a.amount!,
+      baseLimit:   a.amount!,
       totalBudget: this.totalBudget() ?? 0,
       status:      'On Track',
       active:      true,

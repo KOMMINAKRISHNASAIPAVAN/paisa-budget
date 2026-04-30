@@ -12,6 +12,7 @@ export interface Budget {
   type: 'monthly' | 'weekly';
   period: string;
   totalBudget: number;
+  baseLimit: number;
   limit: number;
   spent: number;
   status: string;
@@ -197,6 +198,15 @@ export class DataService {
     }
   }
 
+  async rolloverBudget(id: string, carryover: number, newPeriodLabel: string) {
+    try {
+      const data: any = await firstValueFrom(
+        this.http.patch<any>(`${environment.apiUrl}/api/budgets/${id}/rollover`, { carryover, newPeriodLabel })
+      );
+      this.budgets.update(list => list.map(b => b.id === id ? this.mapBudget(data) : b));
+    } catch {}
+  }
+
   async toggleBudget(id: string) {
     try {
       await firstValueFrom(
@@ -299,6 +309,7 @@ export class DataService {
       type:        b.type,
       period:      b.periodLabel ?? '',
       totalBudget: b.totalBudget ?? 0,
+      baseLimit:   b.baseBudgetLimit ?? b.budgetLimit ?? 0,
       limit:       b.budgetLimit,
       spent:       b.spent ?? 0,
       status:      b.status ?? 'On Track',

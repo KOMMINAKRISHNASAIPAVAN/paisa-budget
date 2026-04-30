@@ -38,6 +38,9 @@ public class Budget {
     @Column(name = "budget_limit", nullable = false)
     private Double budgetLimit;
 
+    @Column(name = "base_budget_limit")
+    private Double baseBudgetLimit;
+
     @Column(nullable = false)
     private Double spent = 0.0;
 
@@ -75,6 +78,9 @@ public class Budget {
 
     public Double getBudgetLimit() { return budgetLimit; }
     public void setBudgetLimit(Double budgetLimit) { this.budgetLimit = budgetLimit; }
+
+    public Double getBaseBudgetLimit() { return baseBudgetLimit; }
+    public void setBaseBudgetLimit(Double baseBudgetLimit) { this.baseBudgetLimit = baseBudgetLimit; }
 
     public Double getSpent() { return spent; }
     public void setSpent(Double spent) { this.spent = spent; }

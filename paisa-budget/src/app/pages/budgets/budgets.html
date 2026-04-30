@@ -361,3 +361,45 @@
     </div>
   </div>
 }
+
+<!-- ── Rollover Modal ──────────────────────────────────────── -->
+@if (showRollover()) {
+  <div class="modal-backdrop" (click)="skipRollover()">
+    <div class="modal-box" (click)="$event.stopPropagation()" style="max-width:480px;">
+      <div style="text-align:center; margin-bottom:20px;">
+        <div style="font-size:40px; margin-bottom:8px;">🔄</div>
+        <h2 style="font-size:18px; font-weight:700; color:var(--text-primary); margin:0 0 6px;">New Period Started!</h2>
+        <p style="font-size:13px; color:var(--text-secondary); margin:0;">You have unspent money from the previous period. Carry it over?</p>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
+        @for (b of rolloverBudgets(); track b.id) {
+          <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-input); border:1px solid var(--border-medium); border-radius:12px; padding:12px 16px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size:22px;">{{ b.icon }}</span>
+              <div>
+                <div style="font-size:14px; font-weight:600; color:var(--text-primary);">{{ b.category }}</div>
+                <div style="font-size:12px; color:var(--text-muted);">{{ b.period }} · ₹{{ (b.limit - b.spent).toLocaleString() }} remaining</div>
+              </div>
+            </div>
+            <button
+              (click)="toggleRolloverChoice(b.id)"
+              style="padding:6px 14px; border-radius:999px; font-size:12px; font-weight:600; cursor:pointer; border:1.5px solid; transition:all 0.18s;"
+              [style.background]="rolloverChoices()[b.id] ? 'var(--success)' : 'transparent'"
+              [style.border-color]="rolloverChoices()[b.id] ? 'var(--success)' : 'var(--border-medium)'"
+              [style.color]="rolloverChoices()[b.id] ? '#fff' : 'var(--text-muted)'">
+              {{ rolloverChoices()[b.id] ? '✓ Carry Over' : 'Skip' }}
+            </button>
+          </div>
+        }
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-outline" style="flex:1;" (click)="skipRollover()">Skip All</button>
+        <button class="btn btn-primary" style="flex:2;" (click)="submitRollover()" [disabled]="rolloverSaving()">
+          {{ rolloverSaving() ? 'Applying…' : 'Apply Rollover' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
