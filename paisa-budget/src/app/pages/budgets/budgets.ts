@@ -33,6 +33,51 @@ export class Budgets {
   step         = signal<1 | 2 | 3>(1);
   formError    = signal('');
 
+  // ── Quick Add Category ────────────────────────────────
+  showQuickAdd = signal(false);
+  quickSaving  = signal(false);
+  quickError   = signal('');
+  quickForm    = { icon: '✏️', category: '', type: 'monthly' as 'monthly' | 'weekly', amount: null as number | null };
+
+  openQuickAdd() {
+    this.quickForm = { icon: '✏️', category: '', type: 'monthly', amount: null };
+    this.quickError.set('');
+    this.showQuickAdd.set(true);
+  }
+
+  closeQuickAdd() { this.showQuickAdd.set(false); }
+
+  async submitQuickAdd() {
+    this.quickError.set('');
+    if (!this.quickForm.category.trim()) { this.quickError.set('Category name is required.'); return; }
+    if (!this.quickForm.amount || this.quickForm.amount <= 0) { this.quickError.set('Enter a valid limit amount.'); return; }
+
+    const now  = new Date();
+    const period = this.quickForm.type === 'monthly'
+      ? `${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`
+      : `Week ${this.getWeekOfMonth(now)} · ${now.toLocaleString('default', { month: 'short' })} ${now.getFullYear()}`;
+
+    const budget: Budget = {
+      id:          crypto.randomUUID(),
+      icon:        this.quickForm.icon || '✏️',
+      category:    this.quickForm.category.trim(),
+      type:        this.quickForm.type,
+      period,
+      spent:       0,
+      limit:       this.quickForm.amount!,
+      baseLimit:   this.quickForm.amount!,
+      totalBudget: this.quickForm.amount!,
+      status:      'On Track',
+      active:      true,
+    };
+
+    this.quickSaving.set(true);
+    const result = await this.data.addBudgets([budget]);
+    this.quickSaving.set(false);
+    if (result.ok) this.closeQuickAdd();
+    else this.quickError.set(result.error ?? 'Failed to save.');
+  }
+
   // ── Rollover ──────────────────────────────────────────
   showRollover    = signal(false);
   rolloverItems   = signal<{ budget: Budget; reason: 'week' | 'month' }[]>([]);

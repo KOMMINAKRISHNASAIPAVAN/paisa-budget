@@ -3,7 +3,10 @@
     <h1>{{ 'budgets.title' | t }}</h1>
     <p>{{ 'budgets.desc' | t }}</p>
   </div>
-  <button class="btn btn-primary" (click)="openModal()">{{ 'budgets.newBudget' | t }}</button>
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <button class="btn btn-outline" (click)="openQuickAdd()">＋ Add Category</button>
+    <button class="btn btn-primary" (click)="openModal()">{{ 'budgets.newBudget' | t }}</button>
+  </div>
 </div>
 
 @if (overIncome()) {
@@ -358,6 +361,92 @@
         </div>
       }
 
+    </div>
+  </div>
+}
+
+<!-- ── Quick Add Category Modal ───────────────────────────── -->
+@if (showQuickAdd()) {
+  <div class="modal-backdrop" (click)="closeQuickAdd()">
+    <div class="modal-box" (click)="$event.stopPropagation()" style="max-width:420px;">
+      <h2 style="font-size:17px; font-weight:700; color:var(--text-primary); margin:0 0 20px;">＋ Add Custom Category</h2>
+
+      <div style="display:flex; flex-direction:column; gap:14px;">
+
+        <!-- Icon + Name row -->
+        <div style="display:flex; gap:10px;">
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <label style="font-size:12px; color:var(--text-muted);">Icon</label>
+            <input
+              type="text"
+              [(ngModel)]="quickForm.icon"
+              name="qIcon"
+              maxlength="2"
+              style="width:52px; text-align:center; font-size:22px; padding:8px; border-radius:8px; border:1.5px solid var(--border-medium); background:var(--bg-input); color:var(--text-primary);"
+            />
+          </div>
+          <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+            <label style="font-size:12px; color:var(--text-muted);">Category Name</label>
+            <input
+              type="text"
+              [(ngModel)]="quickForm.category"
+              name="qCategory"
+              placeholder="e.g. Gym, Books, Pets…"
+              style="width:100%; padding:10px 12px; border-radius:8px; border:1.5px solid var(--border-medium); background:var(--bg-input); color:var(--text-primary); font-size:14px;"
+            />
+          </div>
+        </div>
+
+        <!-- Period type -->
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <label style="font-size:12px; color:var(--text-muted);">Period</label>
+          <div style="display:flex; gap:8px;">
+            <button type="button"
+              (click)="quickForm.type = 'monthly'"
+              style="flex:1; padding:9px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; border:1.5px solid; transition:all 0.15s;"
+              [style.background]="quickForm.type === 'monthly' ? 'var(--accent)' : 'transparent'"
+              [style.border-color]="quickForm.type === 'monthly' ? 'var(--accent)' : 'var(--border-medium)'"
+              [style.color]="quickForm.type === 'monthly' ? '#fff' : 'var(--text-secondary)'">
+              📅 Monthly
+            </button>
+            <button type="button"
+              (click)="quickForm.type = 'weekly'"
+              style="flex:1; padding:9px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; border:1.5px solid; transition:all 0.15s;"
+              [style.background]="quickForm.type === 'weekly' ? 'var(--purple)' : 'transparent'"
+              [style.border-color]="quickForm.type === 'weekly' ? 'var(--purple)' : 'var(--border-medium)'"
+              [style.color]="quickForm.type === 'weekly' ? '#fff' : 'var(--text-secondary)'">
+              📆 Weekly
+            </button>
+          </div>
+        </div>
+
+        <!-- Limit amount -->
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <label style="font-size:12px; color:var(--text-muted);">Budget Limit</label>
+          <div style="display:flex; align-items:center; gap:0; border:1.5px solid var(--border-medium); border-radius:8px; background:var(--bg-input); overflow:hidden;">
+            <span style="padding:0 12px; font-size:14px; color:var(--text-muted); border-right:1px solid var(--border-medium);">₹</span>
+            <input
+              type="number"
+              [(ngModel)]="quickForm.amount"
+              name="qAmount"
+              placeholder="0"
+              min="0"
+              style="flex:1; padding:10px 12px; border:none; background:transparent; color:var(--text-primary); font-size:14px; outline:none;"
+            />
+          </div>
+        </div>
+
+        @if (quickError()) {
+          <div style="font-size:12px; color:var(--danger);">{{ quickError() }}</div>
+        }
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button class="btn btn-outline" style="flex:1;" (click)="closeQuickAdd()">Cancel</button>
+        <button class="btn btn-primary" style="flex:2;" (click)="submitQuickAdd()" [disabled]="quickSaving()">
+          {{ quickSaving() ? 'Saving…' : 'Add Category' }}
+        </button>
+      </div>
     </div>
   </div>
 }
