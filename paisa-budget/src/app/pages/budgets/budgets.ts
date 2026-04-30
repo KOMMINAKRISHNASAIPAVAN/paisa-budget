@@ -50,10 +50,10 @@ export class Budgets {
   }
 
   private detectExpiredBudgets(budgets: Budget[]) {
-    const now             = new Date();
-    const currentMonth    = now.toLocaleString('default', { month: 'long' }) + ' ' + now.getFullYear();
-    const currentMonthShort = now.toLocaleString('default', { month: 'short' }) + ' ' + now.getFullYear();
-    const currentWeek     = this.getWeekNumber(now);
+    const now               = new Date();
+    const currentMonthLong  = `${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`;
+    const currentMonthShort = `${now.toLocaleString('default', { month: 'short' })} ${now.getFullYear()}`;
+    const currentWeek       = this.getWeekOfMonth(now);
 
     const items: { budget: Budget; reason: 'week' | 'month' }[] = [];
 
@@ -63,16 +63,18 @@ export class Budgets {
       if (remaining <= 0) continue;
 
       if (b.type === 'monthly') {
-        if (b.period !== currentMonth) items.push({ budget: b, reason: 'month' });
+        if (b.period !== currentMonthLong) items.push({ budget: b, reason: 'month' });
       } else {
-        // Weekly: detect week-end AND/OR month-end
-        const weekNum   = parseInt(b.period.match(/Week (\d+)/)?.[1] ?? '0');
-        const monthPart = b.period.match(/·\s*(.+)$/)?.[1]?.trim() ?? '';
-        const weekExpired  = weekNum !== currentWeek;
+        // Parse "Week 2 · Apr 2026" — month always cuts off the week first
+        const monthPart    = b.period.match(/·\s*(.+)$/)?.[1]?.trim() ?? '';
         const monthExpired = monthPart !== '' && monthPart !== currentMonthShort;
-        // Month-end takes priority label; else week-end
-        if (monthExpired) items.push({ budget: b, reason: 'month' });
-        else if (weekExpired) items.push({ budget: b, reason: 'week' });
+        if (monthExpired) {
+          items.push({ budget: b, reason: 'month' });
+        } else {
+          // Same month — check if week-of-month changed
+          const budgetWeek = parseInt(b.period.match(/Week (\d+)/)?.[1] ?? '0');
+          if (budgetWeek !== currentWeek) items.push({ budget: b, reason: 'week' });
+        }
       }
     }
 
@@ -97,7 +99,7 @@ export class Budgets {
     const monthLong  = now.toLocaleString('default', { month: 'long' });
     const monthShort = now.toLocaleString('default', { month: 'short' });
     const year       = now.getFullYear();
-    const weekNum    = this.getWeekNumber(now);
+    const weekNum    = this.getWeekOfMonth(now);
 
     for (const { budget: b } of this.rolloverItems()) {
       const wantsCarryover = choices[b.id] ?? true;
@@ -240,7 +242,7 @@ export class Budgets {
     const now    = new Date();
     const period = this.periodType() === 'monthly'
       ? `${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`
-      : `Week ${this.getWeekNumber(now)} · ${now.toLocaleString('default', { month: 'short' })} ${now.getFullYear()}`;
+      : `Week ${this.getWeekOfMonth(now)} · ${now.toLocaleString('default', { month: 'short' })} ${now.getFullYear()}`;
 
     const newBudgets: Budget[] = filled.map(a => ({
       id:          crypto.randomUUID(),
@@ -267,10 +269,8 @@ export class Budgets {
     }
   }
 
-  private getWeekNumber(d: Date): number {
-    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
-    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-    return Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  // Week 1–4 within the current month (resets every new month)
+  private getWeekOfMonth(d: Date): number {
+    return Math.ceil(d.getDate() / 7);
   }
 }
