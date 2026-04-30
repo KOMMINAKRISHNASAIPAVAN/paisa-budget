@@ -1,7 +1,7 @@
 <!-- ── Desktop Sidebar ─────────────────────────────────────── -->
 <nav class="sidebar">
   <div class="sidebar-brand">
-    <span class="brand-icon">💹</span>
+    <span class="brand-mark">P</span>
     <span class="brand-name">Paisa</span>
     <a routerLink="/notifications" class="notif-bell" title="Notifications">
       🔔
@@ -30,17 +30,17 @@
       <div class="user-name">{{ auth.currentUser()?.name }}</div>
       <div class="user-phone">{{ auth.currentUser()?.phone }}</div>
     </div>
-    <button class="logout-btn" (click)="auth.logout()" title="Logout">🚪</button>
+    <button class="logout-btn" (click)="auth.logout()" title="Sign out">↪</button>
   </div>
 </nav>
 
 <!-- ── Mobile Top Bar ──────────────────────────────────────── -->
 <header class="mobile-topbar">
   <div class="mobile-brand">
-    <span>💹</span>
-    <span>Paisa Budget</span>
+    <span class="brand-mark-mobile">P</span>
+    <span class="brand-text">Paisa</span>
   </div>
-  <div style="display:flex; align-items:center; gap:10px;">
+  <div style="display:flex; align-items:center; gap:8px;">
     <a routerLink="/notifications" class="notif-bell mobile">
       🔔
       @if (showBadge()) {
@@ -48,8 +48,7 @@
       }
     </a>
     <button class="logout-btn-mobile" (click)="auth.logout()">
-      <span class="logout-icon">🚪</span>
-      <span class="logout-text">{{ 'nav.logout' | t }}</span>
+      {{ 'nav.logout' | t }}
     </button>
   </div>
 </header>
