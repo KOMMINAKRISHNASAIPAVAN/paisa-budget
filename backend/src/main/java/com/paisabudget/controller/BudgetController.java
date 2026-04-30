@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/budgets")
@@ -37,6 +38,15 @@ public class BudgetController {
     @PatchMapping("/{id}/toggle")
     public ResponseEntity<Budget> toggle(@AuthenticationPrincipal UserDetails u, @PathVariable Long id) {
         return ResponseEntity.ok(budgetService.toggleBudget(userId(u), id));
+    }
+
+    @PatchMapping("/{id}/rollover")
+    public ResponseEntity<Budget> rollover(@AuthenticationPrincipal UserDetails u,
+                                           @PathVariable Long id,
+                                           @RequestBody Map<String, Object> body) {
+        Double carryover = body.containsKey("carryover") ? ((Number) body.get("carryover")).doubleValue() : 0.0;
+        String newPeriodLabel = (String) body.getOrDefault("newPeriodLabel", "");
+        return ResponseEntity.ok(budgetService.rolloverBudget(userId(u), id, carryover, newPeriodLabel));
     }
 
     @DeleteMapping("/{id}")

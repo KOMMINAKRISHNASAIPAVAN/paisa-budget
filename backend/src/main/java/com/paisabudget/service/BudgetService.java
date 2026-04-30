@@ -44,6 +44,7 @@ public class BudgetService {
                 b.setStatus("On Track");
                 b.setIsActive(true);
                 b.setBudgetLimit(req.getBudgetLimit());
+                b.setBaseBudgetLimit(req.getBudgetLimit());
                 b.setTotalBudget(req.getTotalBudget());
             } else {
                 // Existing budget — accumulate amounts instead of replacing
@@ -67,6 +68,19 @@ public class BudgetService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Budget not found"));
         budget.setIsActive(!budget.getIsActive());
         return budgetRepository.save(budget);
+    }
+
+    @Transactional
+    public Budget rolloverBudget(Long userId, Long budgetId, Double carryover, String newPeriodLabel) {
+        Budget b = budgetRepository.findByIdAndUserId(budgetId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Budget not found"));
+        Double base = b.getBaseBudgetLimit() != null ? b.getBaseBudgetLimit() : b.getBudgetLimit();
+        b.setBudgetLimit(base + carryover);
+        b.setBaseBudgetLimit(base);
+        b.setSpent(0.0);
+        b.setStatus("On Track");
+        b.setPeriodLabel(newPeriodLabel);
+        return budgetRepository.save(b);
     }
 
     @Transactional
