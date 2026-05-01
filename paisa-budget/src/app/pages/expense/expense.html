@@ -36,23 +36,33 @@
   <div class="stat-card">
     <div class="stat-label">{{ 'expense.today' | t }}</div>
     <div class="stat-value">₹{{ todayAmount().toLocaleString() }}</div>
-    <div class="stat-change negative">{{ filteredExpenses().length }} {{ 'expense.shown' | t }}</div>
+    <div class="stat-change negative">{{ 'expense.todayExpenses' | t }}</div>
   </div>
   <div class="stat-card">
-    <div class="stat-label">{{ 'expense.totalExpenses' | t }}</div>
+    <div class="stat-label">{{ 'expense.thisMonth' | t }}</div>
+    <div class="stat-value">₹{{ thisMonthTotal().toLocaleString() }}</div>
+    <div class="stat-change negative">{{ thisMonthExpenses().length }} {{ 'expense.records' | t }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">{{ 'expense.allTime' | t }}</div>
     <div class="stat-value">{{ expenses().length }}</div>
-    <div class="stat-change negative">{{ 'expense.allTime' | t }}</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">{{ 'expense.filteredTotal' | t }}</div>
-    <div class="stat-value">₹{{ totalAmount().toLocaleString() }}</div>
-    <div class="stat-change negative">{{ filteredExpenses().length }} {{ 'expense.records' | t }}</div>
+    <div class="stat-change negative">{{ 'expense.totalExpenses' | t }}</div>
   </div>
 </div>
 
 <div class="card">
   <div class="exp-table-header">
-    <h3>{{ 'expense.expenseLog' | t }}</h3>
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <h3 style="margin:0;">{{ 'expense.expenseLog' | t }}</h3>
+      <div class="period-toggle-sm">
+        <button class="toggle-btn-sm" [class.active]="monthFilter() === 'thisMonth'" (click)="monthFilter.set('thisMonth')">
+          This Month
+        </button>
+        <button class="toggle-btn-sm" [class.active]="monthFilter() === 'all'" (click)="monthFilter.set('all')">
+          All Time
+        </button>
+      </div>
+    </div>
     <div class="filters">
       <select class="filter-select" [(ngModel)]="filterCat" (ngModelChange)="filterCat.set($event)" [ngModel]="filterCat()">
         <option value="All">{{ 'expense.allCategories' | t }}</option>

@@ -73,7 +73,8 @@ export const translations = {
     expense: {
       title: 'Expense', desc: 'Track and add your daily expenses.',
       addBtn: '+ Add Expense', today: 'Today', shown: 'shown',
-      totalExpenses: 'Total Expenses', allTime: 'all time',
+      thisMonth: 'This Month', todayExpenses: 'today',
+      totalExpenses: 'Total Expenses', allTime: 'All Time',
       filteredTotal: 'Filtered Total', records: 'records',
       expenseLog: 'Expense Log', allCategories: 'All Categories',
       descHeader: 'Description', categoryHeader: 'Category',
@@ -240,6 +241,7 @@ export const translations = {
     expense: {
       title: 'खर्च', desc: 'अपने दैनिक खर्चों को ट्रैक और जोड़ें।',
       addBtn: '+ खर्च जोड़ें', today: 'आज', shown: 'दिखाया',
+      thisMonth: 'इस महीने', todayExpenses: 'आज',
       totalExpenses: 'कुल खर्च', allTime: 'सभी समय',
       filteredTotal: 'फ़िल्टर्ड कुल', records: 'रिकॉर्ड',
       expenseLog: 'खर्च लॉग', allCategories: 'सभी श्रेणियां',
@@ -407,6 +409,7 @@ export const translations = {
     expense: {
       title: 'ఖర్చులు', desc: 'మీ రోజువారీ ఖర్చులను ట్రాక్ చేయండి మరియు జోడించండి.',
       addBtn: '+ ఖర్చు జోడించు', today: 'ఈరోజు', shown: 'చూపబడింది',
+      thisMonth: 'ఈ నెల', todayExpenses: 'ఈరోజు',
       totalExpenses: 'మొత్తం ఖర్చులు', allTime: 'అన్ని సమయాలు',
       filteredTotal: 'ఫిల్టర్ చేసిన మొత్తం', records: 'రికార్డులు',
       expenseLog: 'ఖర్చుల లాగ్', allCategories: 'అన్ని వర్గాలు',
