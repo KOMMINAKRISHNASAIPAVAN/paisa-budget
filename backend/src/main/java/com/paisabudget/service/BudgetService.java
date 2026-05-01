@@ -79,7 +79,7 @@ public class BudgetService {
     }
 
     @Transactional
-    public Budget rolloverBudget(Long userId, Long budgetId, Double carryover, String newPeriodLabel) {
+    public void archiveBudget(Long userId, Long budgetId) {
         Budget b = budgetRepository.findByIdAndUserId(budgetId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Budget not found"));
 
@@ -94,13 +94,7 @@ public class BudgetService {
         history.setSpent(b.getSpent());
         historyRepository.save(history);
 
-        Double base = b.getBaseBudgetLimit() != null ? b.getBaseBudgetLimit() : b.getBudgetLimit();
-        b.setBudgetLimit(base + carryover);
-        b.setBaseBudgetLimit(base);
-        b.setSpent(0.0);
-        b.setStatus("On Track");
-        b.setPeriodLabel(newPeriodLabel);
-        return budgetRepository.save(b);
+        budgetRepository.delete(b);
     }
 
     @Transactional

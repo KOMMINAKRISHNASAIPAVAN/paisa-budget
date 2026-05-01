@@ -79,10 +79,9 @@ export class Budgets {
   }
 
   // ── Rollover ──────────────────────────────────────────
-  showRollover    = signal(false);
-  rolloverItems   = signal<{ budget: Budget; reason: 'week' | 'month' }[]>([]);
-  rolloverChoices = signal<Record<string, boolean>>({});
-  rolloverSaving  = signal(false);
+  showRollover  = signal(false);
+  rolloverItems = signal<{ budget: Budget; reason: 'week' | 'month' }[]>([]);
+  rolloverSaving = signal(false);
   private rolledOverIds = new Set<string>();
 
   constructor() {
@@ -124,37 +123,16 @@ export class Budgets {
 
     if (items.length > 0) {
       this.rolloverItems.set(items);
-      const choices: Record<string, boolean> = {};
-      items.forEach(i => choices[i.budget.id] = true);
-      this.rolloverChoices.set(choices);
       this.showRollover.set(true);
     }
   }
 
-  toggleRolloverChoice(id: string) {
-    this.rolloverChoices.update(c => ({ ...c, [id]: !c[id] }));
-  }
-
   async submitRollover() {
     this.rolloverSaving.set(true);
-    // Mark all IDs immediately so the effect won't re-detect them during async operations
     this.rolloverItems().forEach(i => this.rolledOverIds.add(i.budget.id));
 
-    const choices = this.rolloverChoices();
-    const now     = new Date();
-    const monthLong  = now.toLocaleString('default', { month: 'long' });
-    const monthShort = now.toLocaleString('default', { month: 'short' });
-    const year       = now.getFullYear();
-    const weekNum    = this.getWeekOfMonth(now);
-
     for (const { budget: b } of this.rolloverItems()) {
-      const remaining      = b.limit - b.spent;
-      const wantsCarryover = remaining > 0 && (choices[b.id] ?? true);
-      const carryover      = wantsCarryover ? remaining : 0;
-      const newPeriod      = b.type === 'monthly'
-        ? `${monthLong} ${year}`
-        : `Week ${weekNum} · ${monthShort} ${year}`;
-      await this.data.rolloverBudget(b.id, carryover, newPeriod);
+      await this.data.archiveBudget(b.id);
     }
     this.rolloverSaving.set(false);
     this.showRollover.set(false);
@@ -165,13 +143,8 @@ export class Budgets {
     this.showRollover.set(false);
   }
 
-  rolloverReasonLabel(reason: 'week' | 'month'): string {
-    return reason === 'week' ? 'Week Ended' : 'Month Ended';
-  }
-
-  rolloverReasonColor(reason: 'week' | 'month'): string {
-    return reason === 'week' ? 'var(--accent)' : '#f59e0b';
-  }
+  rolloverReasonLabel(reason: 'week' | 'month') { return reason === 'week' ? 'Week Ended' : 'Month Ended'; }
+  rolloverReasonColor(reason: 'week' | 'month') { return reason === 'week' ? 'var(--accent)' : '#f59e0b'; }
 
   // ── Step 1 ───────────────────────────────────────────
   totalBudget = signal<number | null>(null);
