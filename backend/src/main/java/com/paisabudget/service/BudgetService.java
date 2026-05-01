@@ -13,12 +13,20 @@ import java.util.List;
 @Service
 public class BudgetService {
 
-    private final BudgetRepository budgetRepository;
-    private final UserRepository   userRepository;
+    private final BudgetRepository        budgetRepository;
+    private final BudgetHistoryRepository historyRepository;
+    private final UserRepository          userRepository;
 
-    public BudgetService(BudgetRepository budgetRepository, UserRepository userRepository) {
-        this.budgetRepository = budgetRepository;
-        this.userRepository   = userRepository;
+    public BudgetService(BudgetRepository budgetRepository,
+                         BudgetHistoryRepository historyRepository,
+                         UserRepository userRepository) {
+        this.budgetRepository  = budgetRepository;
+        this.historyRepository = historyRepository;
+        this.userRepository    = userRepository;
+    }
+
+    public List<BudgetHistory> getHistory(Long userId) {
+        return historyRepository.findByUserIdOrderByClosedAtDesc(userId);
     }
 
     public List<Budget> getBudgets(Long userId) {
@@ -74,6 +82,18 @@ public class BudgetService {
     public Budget rolloverBudget(Long userId, Long budgetId, Double carryover, String newPeriodLabel) {
         Budget b = budgetRepository.findByIdAndUserId(budgetId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Budget not found"));
+
+        BudgetHistory history = new BudgetHistory();
+        history.setUserId(userId);
+        history.setCategory(b.getCategory());
+        history.setIcon(b.getIcon());
+        history.setType(b.getType().name());
+        history.setPeriodLabel(b.getPeriodLabel());
+        history.setBudgetLimit(b.getBudgetLimit());
+        history.setBaseBudgetLimit(b.getBaseBudgetLimit());
+        history.setSpent(b.getSpent());
+        historyRepository.save(history);
+
         Double base = b.getBaseBudgetLimit() != null ? b.getBaseBudgetLimit() : b.getBudgetLimit();
         b.setBudgetLimit(base + carryover);
         b.setBaseBudgetLimit(base);

@@ -5,6 +5,18 @@ import { environment } from '../../environments/environment';
 import { ToastService } from './toast.service';
 import { NotifStateService } from './notif-state.service';
 
+export interface BudgetHistory {
+  id: number;
+  category: string;
+  icon: string;
+  type: string;
+  periodLabel: string;
+  budgetLimit: number;
+  baseBudgetLimit: number | null;
+  spent: number;
+  closedAt: string;
+}
+
 export interface Budget {
   id: string;
   icon: string;
@@ -53,6 +65,7 @@ export interface StoredNotification {
 export class DataService {
 
   budgets             = signal<Budget[]>([]);
+  budgetHistory       = signal<BudgetHistory[]>([]);
   expenses            = signal<ExpenseItem[]>([]);
   dailyEntries        = signal<DailyEntry[]>([]);
   storedNotifications = signal<StoredNotification[]>([]);
@@ -63,7 +76,7 @@ export class DataService {
 
   // ── Load ──────────────────────────────────────────────────
   async loadAll() {
-    await Promise.all([this.loadBudgets(), this.loadExpenses(), this.loadDailyEntries(), this.loadNotifications()]);
+    await Promise.all([this.loadBudgets(), this.loadExpenses(), this.loadDailyEntries(), this.loadNotifications(), this.loadBudgetHistory()]);
   }
 
   async loadNotifications() {
@@ -105,6 +118,25 @@ export class DataService {
       await firstValueFrom(this.http.delete(`${environment.apiUrl}/api/notifications/${id}`));
       this.storedNotifications.update(list => list.filter(n => n.id !== id));
     } catch {}
+  }
+
+  async loadBudgetHistory() {
+    try {
+      const data: any[] = await firstValueFrom(
+        this.http.get<any[]>(`${environment.apiUrl}/api/budgets/history`)
+      );
+      this.budgetHistory.set(data.map(h => ({
+        id:              h.id,
+        category:        h.category,
+        icon:            h.icon ?? '💸',
+        type:            h.type,
+        periodLabel:     h.periodLabel ?? '',
+        budgetLimit:     h.budgetLimit ?? 0,
+        baseBudgetLimit: h.baseBudgetLimit ?? null,
+        spent:           h.spent ?? 0,
+        closedAt:        h.closedAt,
+      })));
+    } catch { this.budgetHistory.set([]); }
   }
 
   async loadBudgets() {
@@ -204,6 +236,7 @@ export class DataService {
         this.http.patch<any>(`${environment.apiUrl}/api/budgets/${id}/rollover`, { carryover, newPeriodLabel })
       );
       this.budgets.update(list => list.map(b => b.id === id ? this.mapBudget(data) : b));
+      await this.loadBudgetHistory();
     } catch {}
   }
 
@@ -412,6 +445,7 @@ export class DataService {
 
   clearAll() {
     this.budgets.set([]);
+    this.budgetHistory.set([]);
     this.expenses.set([]);
     this.dailyEntries.set([]);
     this.storedNotifications.set([]);
