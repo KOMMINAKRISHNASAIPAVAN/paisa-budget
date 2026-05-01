@@ -230,12 +230,12 @@ export class DataService {
     }
   }
 
-  async rolloverBudget(id: string, carryover: number, newPeriodLabel: string) {
+  async archiveBudget(id: string) {
     try {
-      const data: any = await firstValueFrom(
-        this.http.patch<any>(`${environment.apiUrl}/api/budgets/${id}/rollover`, { carryover, newPeriodLabel })
+      await firstValueFrom(
+        this.http.patch(`${environment.apiUrl}/api/budgets/${id}/archive`, {})
       );
-      this.budgets.update(list => list.map(b => b.id === id ? this.mapBudget(data) : b));
+      this.budgets.update(list => list.filter(b => b.id !== id));
       await this.loadBudgetHistory();
     } catch {}
   }

@@ -490,64 +490,41 @@
   </div>
 }
 
-<!-- ── Rollover Modal ──────────────────────────────────────── -->
+<!-- ── Archive Modal ───────────────────────────────────────── -->
 @if (showRollover()) {
   <div class="modal-backdrop" (click)="skipRollover()">
-    <div class="modal-box" (click)="$event.stopPropagation()" style="max-width:480px;">
+    <div class="modal-box" (click)="$event.stopPropagation()" style="max-width:460px;">
       <div style="text-align:center; margin-bottom:20px;">
         <div style="font-size:38px; margin-bottom:8px;">🗂️</div>
-        <h2 style="font-size:18px; font-weight:700; color:var(--text-primary); margin:0 0 6px;">New Period — Archive Previous?</h2>
-        <p style="font-size:13px; color:var(--text-secondary); margin:0;">These budgets are from a past period. Archive them to history and reset for the new period.</p>
+        <h2 style="font-size:18px; font-weight:700; color:var(--text-primary); margin:0 0 6px;">New Month — Archive Old Budgets?</h2>
+        <p style="font-size:13px; color:var(--text-secondary); margin:0;">These budgets are from a previous period. Move them to Month History and start fresh for the new month.</p>
       </div>
 
-      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px;">
+      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:24px;">
         @for (item of rolloverItems(); track item.budget.id) {
-          <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-input); border:1px solid var(--border-medium); border-radius:10px; padding:12px 14px; gap:10px;">
-            <div style="display:flex; align-items:center; gap:10px; min-width:0;">
-              <span style="font-size:22px; flex-shrink:0;">{{ item.budget.icon }}</span>
-              <div style="min-width:0;">
-                <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px; flex-wrap:wrap;">
-                  <span style="font-size:13.5px; font-weight:600; color:var(--text-primary);">{{ item.budget.category }}</span>
-                  <span style="font-size:10px; font-weight:700; padding:1px 7px; border-radius:4px; color:#fff; flex-shrink:0;"
-                        [style.background]="rolloverReasonColor(item.reason)">
-                    {{ rolloverReasonLabel(item.reason) }}
-                  </span>
-                </div>
-                <div style="font-size:12px; color:var(--text-muted);">
-                  {{ item.budget.period }} ·
-                  @if (item.budget.limit - item.budget.spent > 0) {
-                    <span style="color:var(--success);">₹{{ (item.budget.limit - item.budget.spent).toLocaleString() }} remaining</span>
-                  } @else {
-                    <span style="color:var(--danger);">₹{{ Math.abs(item.budget.limit - item.budget.spent).toLocaleString() }} over budget</span>
-                  }
-                </div>
+          <div style="display:flex; align-items:center; gap:12px; background:var(--bg-input); border:1px solid var(--border-medium); border-radius:10px; padding:12px 14px;">
+            <span style="font-size:22px; flex-shrink:0;">{{ item.budget.icon }}</span>
+            <div style="flex:1; min-width:0;">
+              <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
+                <span style="font-size:13.5px; font-weight:600; color:var(--text-primary);">{{ item.budget.category }}</span>
+                <span style="font-size:10px; font-weight:700; padding:1px 7px; border-radius:4px; color:#fff;"
+                      [style.background]="rolloverReasonColor(item.reason)">
+                  {{ rolloverReasonLabel(item.reason) }}
+                </span>
+              </div>
+              <div style="font-size:12px; color:var(--text-muted);">
+                {{ item.budget.period }} · ₹{{ item.budget.spent.toLocaleString() }} spent of ₹{{ item.budget.limit.toLocaleString() }}
               </div>
             </div>
-
-            @if (item.budget.limit - item.budget.spent > 0) {
-              <!-- Has remaining — let user choose carry over or skip -->
-              <button
-                (click)="toggleRolloverChoice(item.budget.id)"
-                style="padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:1.5px solid; transition:all 0.18s; white-space:nowrap; flex-shrink:0;"
-                [style.background]="rolloverChoices()[item.budget.id] ? 'var(--success)' : 'transparent'"
-                [style.border-color]="rolloverChoices()[item.budget.id] ? 'var(--success)' : 'var(--border-medium)'"
-                [style.color]="rolloverChoices()[item.budget.id] ? '#fff' : 'var(--text-muted)'">
-                {{ rolloverChoices()[item.budget.id] ? '✓ Carry Over' : 'Skip' }}
-              </button>
-            } @else {
-              <!-- Over budget — will just archive and reset -->
-              <span style="font-size:11px; font-weight:600; color:var(--text-muted); border:1px solid var(--border); border-radius:6px; padding:5px 10px; white-space:nowrap; flex-shrink:0;">
-                Archive &amp; Reset
-              </span>
-            }
+            <span style="font-size:11px; font-weight:600; color:var(--text-muted); flex-shrink:0;">→ History</span>
           </div>
         }
       </div>
 
       <div style="display:flex; gap:10px;">
-        <button class="btn btn-outline" style="flex:1;" (click)="skipRollover()">Skip All</button>
+        <button class="btn btn-outline" style="flex:1;" (click)="skipRollover()">Keep for Now</button>
         <button class="btn btn-primary" style="flex:2;" (click)="submitRollover()" [disabled]="rolloverSaving()">
-          {{ rolloverSaving() ? 'Applying…' : 'Apply Rollover' }}
+          {{ rolloverSaving() ? 'Archiving…' : 'Archive & Start Fresh' }}
         </button>
       </div>
     </div>
