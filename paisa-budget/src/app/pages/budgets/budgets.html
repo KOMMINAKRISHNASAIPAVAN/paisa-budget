@@ -3,7 +3,14 @@
     <h1>{{ 'budgets.title' | t }}</h1>
     <p>{{ 'budgets.desc' | t }}</p>
   </div>
-  <button class="btn btn-primary" (click)="openModal()">{{ 'budgets.newBudget' | t }}</button>
+  <div style="display:flex; gap:8px; align-items:center;">
+    @if (filteredBudgets().length > 0) {
+      <button class="btn btn-outline" style="font-size:12px; padding:7px 14px;" (click)="startFresh()">
+        🗂️ Archive All
+      </button>
+    }
+    <button class="btn btn-primary" (click)="openModal()">{{ 'budgets.newBudget' | t }}</button>
+  </div>
 </div>
 
 @if (overIncome()) {
