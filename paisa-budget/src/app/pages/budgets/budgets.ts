@@ -95,6 +95,8 @@ export class Budgets {
   }
 
   private detectExpiredBudgets(budgets: Budget[]) {
+    if (this.showRollover()) return;  // don't re-detect while dialog is open
+
     const now               = new Date();
     const currentMonthLong  = `${now.toLocaleString('default', { month: 'long' })} ${now.getFullYear()}`;
     const currentMonthShort = `${now.toLocaleString('default', { month: 'short' })} ${now.getFullYear()}`;
@@ -135,6 +137,9 @@ export class Budgets {
 
   async submitRollover() {
     this.rolloverSaving.set(true);
+    // Mark all IDs immediately so the effect won't re-detect them during async operations
+    this.rolloverItems().forEach(i => this.rolledOverIds.add(i.budget.id));
+
     const choices = this.rolloverChoices();
     const now     = new Date();
     const monthLong  = now.toLocaleString('default', { month: 'long' });
@@ -150,7 +155,6 @@ export class Budgets {
         ? `${monthLong} ${year}`
         : `Week ${weekNum} · ${monthShort} ${year}`;
       await this.data.rolloverBudget(b.id, carryover, newPeriod);
-      this.rolledOverIds.add(b.id);
     }
     this.rolloverSaving.set(false);
     this.showRollover.set(false);
