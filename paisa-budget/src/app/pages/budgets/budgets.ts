@@ -78,11 +78,19 @@ export class Budgets {
     else this.quickError.set(result.error ?? 'Failed to save.');
   }
 
-  // ── Rollover ──────────────────────────────────────────
+  // ── Archive / Rollover ────────────────────────────────
   showRollover  = signal(false);
   rolloverItems = signal<{ budget: Budget; reason: 'week' | 'month' }[]>([]);
   rolloverSaving = signal(false);
   private rolledOverIds = new Set<string>();
+
+  startFresh() {
+    const active = this.data.budgets().filter(b => b.active);
+    if (active.length === 0) return;
+    const items = active.map(b => ({ budget: b, reason: 'month' as const }));
+    this.rolloverItems.set(items);
+    this.showRollover.set(true);
+  }
 
   constructor() {
     effect(() => {
