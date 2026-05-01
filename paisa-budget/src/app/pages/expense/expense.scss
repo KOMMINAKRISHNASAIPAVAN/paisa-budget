@@ -345,3 +345,34 @@
   .preview-cat   { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
   .preview-amt   { margin-left: auto; font-size: 16px; font-weight: 700; color: var(--danger); }
 }
+
+/* ── Period toggle (expense log) ─────────────────────────── */
+.period-toggle-sm {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px;
+}
+
+.toggle-btn-sm {
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  &:not(.active):hover {
+    color: var(--text-primary);
+  }
+}

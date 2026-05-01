@@ -53,10 +53,24 @@ export class Expense {
   };
 
   // Read directly from DataService
-  expenses = this.data.expenses;
+  expenses    = this.data.expenses;
+  monthFilter = signal<'thisMonth' | 'all'>('thisMonth');
+
+  private get currentMonthShort() {
+    const now = new Date();
+    return now.toLocaleString('default', { month: 'short' });
+  }
+  private get currentYear() { return String(new Date().getFullYear()); }
 
   filteredExpenses = computed(() => {
-    let list      = this.data.expenses();
+    let list = this.data.expenses();
+
+    if (this.monthFilter() === 'thisMonth') {
+      const m = this.currentMonthShort;
+      const y = this.currentYear;
+      list = list.filter(e => e.date.includes(m) && e.date.includes(y));
+    }
+
     const cat     = this.filterCat();
     const dateVal = this.filterDate();
     if (cat !== 'All') list = list.filter(e => e.category === cat);
@@ -64,8 +78,15 @@ export class Expense {
     return list;
   });
 
-  totalAmount = computed(() => this.filteredExpenses().reduce((s, e) => s + e.amount, 0));
-  todayAmount = this.data.todayTotal;
+  thisMonthExpenses = computed(() => {
+    const m = this.currentMonthShort;
+    const y = this.currentYear;
+    return this.data.expenses().filter(e => e.date.includes(m) && e.date.includes(y));
+  });
+
+  thisMonthTotal = computed(() => this.thisMonthExpenses().reduce((s, e) => s + e.amount, 0));
+  totalAmount    = computed(() => this.filteredExpenses().reduce((s, e) => s + e.amount, 0));
+  todayAmount    = this.data.todayTotal;
 
   openModal() {
     const first = this.budgetCategories()[0];
