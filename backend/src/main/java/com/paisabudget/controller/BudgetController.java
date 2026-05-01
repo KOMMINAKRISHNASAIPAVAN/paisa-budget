@@ -2,6 +2,7 @@ package com.paisabudget.controller;
 
 import com.paisabudget.dto.BudgetRequest;
 import com.paisabudget.entity.Budget;
+import com.paisabudget.entity.BudgetHistory;
 import com.paisabudget.service.BudgetService;
 import jakarta.validation.Valid;
 import org.springframework.http.*;
@@ -27,6 +28,11 @@ public class BudgetController {
     @GetMapping
     public ResponseEntity<List<Budget>> getAll(@AuthenticationPrincipal UserDetails u) {
         return ResponseEntity.ok(budgetService.getBudgets(userId(u)));
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<List<BudgetHistory>> getHistory(@AuthenticationPrincipal UserDetails u) {
+        return ResponseEntity.ok(budgetService.getHistory(userId(u)));
     }
 
     @PostMapping

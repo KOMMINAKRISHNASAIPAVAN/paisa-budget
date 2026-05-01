@@ -1,7 +1,7 @@
 import { Component, computed, signal, inject, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgTemplateOutlet } from '@angular/common';
-import { DataService, Budget } from '../../services/data.service';
+import { NgTemplateOutlet, TitleCasePipe } from '@angular/common';
+import { DataService, Budget, BudgetHistory } from '../../services/data.service';
 import { AuthService } from '../../services/auth';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
@@ -16,13 +16,13 @@ interface Allocation {
 
 @Component({
   selector: 'app-budgets',
-  imports: [FormsModule, NgTemplateOutlet, TranslatePipe],
+  imports: [FormsModule, NgTemplateOutlet, TitleCasePipe, TranslatePipe],
   templateUrl: './budgets.html',
   styleUrl: './budgets.scss',
 })
 export class Budgets {
   Math = Math;
-  private data = inject(DataService);
+  data = inject(DataService);
   private auth = inject(AuthService);
 
   monthlyIncome = computed(() => this.auth.currentUser()?.monthlyIncome ?? 0);
@@ -83,12 +83,12 @@ export class Budgets {
   rolloverItems   = signal<{ budget: Budget; reason: 'week' | 'month' }[]>([]);
   rolloverChoices = signal<Record<string, boolean>>({});
   rolloverSaving  = signal(false);
-  rolloverDone    = signal(false);
+  private rolledOverIds = new Set<string>();
 
   constructor() {
     effect(() => {
       const budgets = this.data.budgets();
-      if (!this.rolloverDone() && budgets.length > 0) {
+      if (budgets.length > 0) {
         this.detectExpiredBudgets(budgets);
       }
     });
@@ -104,19 +104,16 @@ export class Budgets {
 
     for (const b of budgets) {
       if (!b.active) continue;
-      const remaining = b.limit - b.spent;
-      if (remaining <= 0) continue;
+      if (this.rolledOverIds.has(b.id)) continue;
 
       if (b.type === 'monthly') {
         if (b.period !== currentMonthLong) items.push({ budget: b, reason: 'month' });
       } else {
-        // Parse "Week 2 · Apr 2026" — month always cuts off the week first
         const monthPart    = b.period.match(/·\s*(.+)$/)?.[1]?.trim() ?? '';
         const monthExpired = monthPart !== '' && monthPart !== currentMonthShort;
         if (monthExpired) {
           items.push({ budget: b, reason: 'month' });
         } else {
-          // Same month — check if week-of-month changed
           const budgetWeek = parseInt(b.period.match(/Week (\d+)/)?.[1] ?? '0');
           if (budgetWeek !== currentWeek) items.push({ budget: b, reason: 'week' });
         }
@@ -130,7 +127,6 @@ export class Budgets {
       this.rolloverChoices.set(choices);
       this.showRollover.set(true);
     }
-    this.rolloverDone.set(true);
   }
 
   toggleRolloverChoice(id: string) {
@@ -147,18 +143,23 @@ export class Budgets {
     const weekNum    = this.getWeekOfMonth(now);
 
     for (const { budget: b } of this.rolloverItems()) {
-      const wantsCarryover = choices[b.id] ?? true;
-      const carryover      = wantsCarryover ? Math.max(0, b.limit - b.spent) : 0;
+      const remaining      = b.limit - b.spent;
+      const wantsCarryover = remaining > 0 && (choices[b.id] ?? true);
+      const carryover      = wantsCarryover ? remaining : 0;
       const newPeriod      = b.type === 'monthly'
         ? `${monthLong} ${year}`
         : `Week ${weekNum} · ${monthShort} ${year}`;
       await this.data.rolloverBudget(b.id, carryover, newPeriod);
+      this.rolledOverIds.add(b.id);
     }
     this.rolloverSaving.set(false);
     this.showRollover.set(false);
   }
 
-  skipRollover() { this.showRollover.set(false); }
+  skipRollover() {
+    this.rolloverItems().forEach(i => this.rolledOverIds.add(i.budget.id));
+    this.showRollover.set(false);
+  }
 
   rolloverReasonLabel(reason: 'week' | 'month'): string {
     return reason === 'week' ? 'Week Ended' : 'Month Ended';
@@ -213,6 +214,18 @@ export class Budgets {
   summaryTotal  = computed(() => this.activeBudgets().reduce((s, b) => s + b.limit, 0));
   summarySpent  = computed(() => this.activeBudgets().reduce((s, b) => s + b.spent, 0));
   summaryLeft   = computed(() => this.summaryTotal() - this.summarySpent());
+
+  // ── History ──────────────────────────────────────────
+  historyByPeriod = computed(() => {
+    const map = new Map<string, BudgetHistory[]>();
+    for (const h of this.data.budgetHistory()) {
+      const key = h.periodLabel || 'Unknown Period';
+      const list = map.get(key) ?? [];
+      list.push(h);
+      map.set(key, list);
+    }
+    return Array.from(map.entries()).map(([period, items]) => ({ period, items }));
+  });
 
   setFilter(p: PeriodFilter) { this.activePeriod.set(p); }
 
