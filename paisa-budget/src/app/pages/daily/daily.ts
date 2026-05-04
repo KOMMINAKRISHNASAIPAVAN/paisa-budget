@@ -1,7 +1,6 @@
 import { Component, computed, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
-import { AuthService } from '../../services/auth';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
 const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -16,7 +15,6 @@ export class Daily {
   Math  = Math;
   today = new Date().toLocaleDateString('en-CA');  // YYYY-MM-DD for [max]
   private data = inject(DataService);
-  private auth = inject(AuthService);
 
   // ── Form ─────────────────────────────────────────────────
   form = {
@@ -85,7 +83,7 @@ export class Daily {
       .reduce((s, e) => s + e.amount, 0);
   });
 
-  // Group by date with day-by-day remaining balance (newest first for display)
+  // Group by date, newest first
   grouped = computed(() => {
     const map = new Map<string, { id: string; description: string; amount: number; note: string; entryType: 'INCOME' | 'EXPENSE'; entryDate: string }[]>();
     for (const e of this.monthEntries()) {
@@ -93,28 +91,14 @@ export class Daily {
       list.push(e);
       map.set(e.entryDate, list);
     }
-
-    const groups = Array.from(map.entries())
+    return Array.from(map.entries())
       .map(([date, items]) => ({
         date,
         items,
         dayIncome: items.filter(i => i.entryType === 'INCOME').reduce((s, i) => s + i.amount, 0),
         daySpent:  items.filter(i => i.entryType === 'EXPENSE').reduce((s, i) => s + i.amount, 0),
-        remaining: 0,
       }))
-      .sort((a, b) => this.parseEntryDate(a.date) - this.parseEntryDate(b.date));
-
-    // Start from monthly income (profile) + any income entries added in the tracker
-    const monthlyIncome = this.auth.currentUser()?.monthlyIncome ?? 0;
-    const extraIncome   = groups.reduce((s, g) => s + g.dayIncome, 0);
-    let running = monthlyIncome + extraIncome;
-
-    for (const g of groups) {
-      running -= g.daySpent;
-      g.remaining = running;
-    }
-
-    return groups.reverse(); // newest first for display
+      .sort((a, b) => this.parseEntryDate(b.date) - this.parseEntryDate(a.date));
   });
 
   private parseEntryDate(dateStr: string): number {
@@ -124,6 +108,55 @@ export class Daily {
     };
     const [day, mon, year] = dateStr.split(' ');
     return new Date(+year, months[mon] ?? 0, +day).getTime();
+  }
+
+  // ── Edit entry ────────────────────────────────────────────
+  showEdit   = signal(false);
+  editId     = signal('');
+  editSaving = signal(false);
+  editError  = signal('');
+  editForm   = { description: '', amount: null as number | null, note: '', entryType: 'EXPENSE' as 'EXPENSE' | 'INCOME', entryDate: '' };
+
+  openEdit(entry: { id: string; description: string; amount: number; note: string; entryType: 'INCOME' | 'EXPENSE'; entryDate: string }) {
+    this.editId.set(entry.id);
+    this.editForm = {
+      description: entry.description,
+      amount:      entry.amount,
+      note:        entry.note,
+      entryType:   entry.entryType,
+      entryDate:   this.toInputDate(entry.entryDate),
+    };
+    this.editError.set('');
+    this.showEdit.set(true);
+  }
+
+  closeEdit() { this.showEdit.set(false); }
+
+  async saveEdit() {
+    this.editError.set('');
+    if (!this.editForm.description.trim()) { this.editError.set('Description is required.'); return; }
+    if (!this.editForm.amount || this.editForm.amount <= 0) { this.editError.set('Enter a valid amount.'); return; }
+
+    this.editSaving.set(true);
+    const result = await this.data.updateDailyEntry(this.editId(), {
+      description: this.editForm.description.trim(),
+      amount:      this.editForm.amount,
+      note:        this.editForm.note.trim(),
+      entryType:   this.editForm.entryType,
+      entryDate:   this.editForm.entryDate,
+    });
+    this.editSaving.set(false);
+    if (result.ok) this.closeEdit();
+    else this.editError.set(result.error ?? 'Failed to update entry.');
+  }
+
+  private toInputDate(dateStr: string): string {
+    const months: Record<string, string> = {
+      Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06',
+      Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12',
+    };
+    const [day, mon, year] = dateStr.split(' ');
+    return `${year}-${months[mon] ?? '01'}-${day.padStart(2, '0')}`;
   }
 
   // ── Add entry ─────────────────────────────────────────────

@@ -184,18 +184,13 @@
       <div class="day-group">
         <div class="day-header">
           <span class="day-date">{{ group.date }}</span>
-          <div class="day-header-right">
-            <div class="day-totals">
-              @if (group.dayIncome > 0) {
-                <span class="day-income">+₹{{ group.dayIncome.toLocaleString() }}</span>
-              }
-              @if (group.daySpent > 0) {
-                <span class="day-spent">-₹{{ group.daySpent.toLocaleString() }}</span>
-              }
-            </div>
-            <div class="day-remaining">
-              ₹{{ Math.abs(group.remaining).toLocaleString() }} remaining
-            </div>
+          <div class="day-totals">
+            @if (group.dayIncome > 0) {
+              <span class="day-income">+₹{{ group.dayIncome.toLocaleString() }}</span>
+            }
+            @if (group.daySpent > 0) {
+              <span class="day-spent">-₹{{ group.daySpent.toLocaleString() }}</span>
+            }
           </div>
         </div>
 
@@ -212,6 +207,7 @@
               <span class="entry-amount" [class.income]="entry.entryType === 'INCOME'" [class.spent]="entry.entryType === 'EXPENSE'">
                 {{ entry.entryType === 'INCOME' ? '+' : '-' }}₹{{ entry.amount.toLocaleString() }}
               </span>
+              <button class="entry-edit" (click)="openEdit(entry)" title="Edit">✏️</button>
               <button class="entry-delete" (click)="deleteEntry(entry.id)" [title]="'common.delete' | t">🗑️</button>
             </div>
           </div>
@@ -228,3 +224,58 @@
     </div>
   }
 </div>
+
+<!-- ── Edit Entry Modal ── -->
+@if (showEdit()) {
+  <div class="modal-backdrop" (click)="closeEdit()">
+    <div class="modal-box edit-modal" (click)="$event.stopPropagation()">
+      <h2 class="edit-modal-title">Edit Entry</h2>
+
+      <!-- Type toggle -->
+      <div class="entry-type-toggle" style="margin-bottom:16px;">
+        <button type="button" class="type-btn expense-btn" [class.selected]="editForm.entryType === 'EXPENSE'" (click)="editForm.entryType = 'EXPENSE'">
+          💸 Expense
+        </button>
+        <button type="button" class="type-btn income-btn" [class.selected]="editForm.entryType === 'INCOME'" (click)="editForm.entryType = 'INCOME'">
+          💰 Income
+        </button>
+      </div>
+
+      @if (editError()) {
+        <div class="form-error" style="margin-bottom:14px;">⚠️ {{ editError() }}</div>
+      }
+
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div class="entry-field">
+          <label class="entry-label">Description</label>
+          <input class="entry-input" type="text" [(ngModel)]="editForm.description" name="editDesc" placeholder="e.g. Lunch, Salary…" (keyup.enter)="saveEdit()" />
+        </div>
+
+        <div class="entry-field">
+          <label class="entry-label">Amount</label>
+          <div class="entry-amt-wrap" [class.income-border]="editForm.entryType === 'INCOME'">
+            <span class="entry-prefix">₹</span>
+            <input class="entry-input" type="number" min="1" [(ngModel)]="editForm.amount" name="editAmount" placeholder="0" (keyup.enter)="saveEdit()" />
+          </div>
+        </div>
+
+        <div class="entry-field">
+          <label class="entry-label">Date</label>
+          <input class="entry-input" type="date" [(ngModel)]="editForm.entryDate" name="editDate" [max]="today" />
+        </div>
+
+        <div class="entry-field">
+          <label class="entry-label">Note <span style="font-weight:400; text-transform:none; color:var(--text-muted)">(optional)</span></label>
+          <input class="entry-input" type="text" [(ngModel)]="editForm.note" name="editNote" placeholder="Add a note…" (keyup.enter)="saveEdit()" />
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button class="btn btn-outline" style="flex:1;" (click)="closeEdit()">Cancel</button>
+        <button class="btn btn-primary" style="flex:2;" (click)="saveEdit()" [disabled]="editSaving()">
+          {{ editSaving() ? 'Saving…' : 'Save Changes' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

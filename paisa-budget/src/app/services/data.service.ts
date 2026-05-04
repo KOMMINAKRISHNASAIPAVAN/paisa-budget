@@ -235,6 +235,25 @@ export class DataService {
     }
   }
 
+  async updateDailyEntry(id: string, item: { description: string; amount: number; note: string; entryType: 'INCOME' | 'EXPENSE'; entryDate: string }): Promise<{ ok: boolean; error?: string }> {
+    try {
+      const data: any = await firstValueFrom(
+        this.http.put<any>(`${environment.apiUrl}/api/daily/${id}`, {
+          description: item.description,
+          amount:      item.amount,
+          note:        item.note,
+          entryType:   item.entryType,
+          entryDate:   item.entryDate,
+        })
+      );
+      this.dailyEntries.update(list => list.map(d => d.id === id ? this.mapDailyEntry(data) : d));
+      this.writeCache();
+      return { ok: true };
+    } catch (err: any) {
+      return { ok: false, error: err?.error?.message ?? 'Failed to update entry.' };
+    }
+  }
+
   async deleteDailyEntry(id: string) {
     try {
       await firstValueFrom(this.http.delete(`${environment.apiUrl}/api/daily/${id}`));

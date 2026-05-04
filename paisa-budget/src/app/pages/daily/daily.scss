@@ -262,13 +262,6 @@
   .day-date { font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
 }
 
-.day-header-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-}
-
 .day-totals {
   display: flex;
   gap: 10px;
@@ -277,13 +270,6 @@
 
   .day-income { color: var(--success); }
   .day-spent  { color: var(--danger); }
-}
-
-.day-remaining {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  color: var(--success);
 }
 
 .entry-row {
@@ -318,6 +304,14 @@
       font-size: 14px; font-weight: 700;
       &.income { color: var(--success); }
       &.spent  { color: var(--danger); }
+    }
+
+    .entry-edit {
+      background: none; border: none; cursor: pointer;
+      font-size: 15px; padding: 2px 4px; border-radius: 6px;
+      opacity: 0.35; transition: opacity 0.15s;
+      color: var(--text-secondary);
+      &:hover { opacity: 1; }
     }
 
     .entry-delete {
@@ -355,4 +349,30 @@
 
   .empty-icon { font-size: 40px; margin-bottom: 12px; }
   p { font-size: 14px; line-height: 1.6; }
+}
+
+/* ── Edit modal ──────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 20px;
+}
+
+.modal-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+.edit-modal { max-width: 440px; }
+
+.edit-modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 18px;
 }
