@@ -193,7 +193,7 @@
                 <span class="day-spent">-₹{{ group.daySpent.toLocaleString() }}</span>
               }
             </div>
-            <div class="day-remaining" [class.negative]="group.remaining < 0">
+            <div class="day-remaining">
               ₹{{ Math.abs(group.remaining).toLocaleString() }} remaining
             </div>
           </div>
