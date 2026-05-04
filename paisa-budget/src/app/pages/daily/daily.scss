@@ -283,8 +283,8 @@
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.2px;
+  color: var(--success);
 
-  &.positive { color: var(--success); }
   &.negative { color: var(--danger); }
 }
 

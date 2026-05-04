@@ -1,6 +1,7 @@
 import { Component, computed, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
+import { AuthService } from '../../services/auth';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
 const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -15,6 +16,7 @@ export class Daily {
   Math  = Math;
   today = new Date().toLocaleDateString('en-CA');  // YYYY-MM-DD for [max]
   private data = inject(DataService);
+  private auth = inject(AuthService);
 
   // ── Form ─────────────────────────────────────────────────
   form = {
@@ -83,7 +85,7 @@ export class Daily {
       .reduce((s, e) => s + e.amount, 0);
   });
 
-  // Group by date with running balance (oldest→newest accumulation, displayed newest-first)
+  // Group by date with day-by-day remaining balance (newest first for display)
   grouped = computed(() => {
     const map = new Map<string, { id: string; description: string; amount: number; note: string; entryType: 'INCOME' | 'EXPENSE'; entryDate: string }[]>();
     for (const e of this.monthEntries()) {
@@ -98,14 +100,18 @@ export class Daily {
         items,
         dayIncome: items.filter(i => i.entryType === 'INCOME').reduce((s, i) => s + i.amount, 0),
         daySpent:  items.filter(i => i.entryType === 'EXPENSE').reduce((s, i) => s + i.amount, 0),
-        runningBalance: 0,
+        remaining: 0,
       }))
       .sort((a, b) => this.parseEntryDate(a.date) - this.parseEntryDate(b.date));
 
-    let running = 0;
+    // Start from monthly income (profile) + any income entries added in the tracker
+    const monthlyIncome = this.auth.currentUser()?.monthlyIncome ?? 0;
+    const extraIncome   = groups.reduce((s, g) => s + g.dayIncome, 0);
+    let running = monthlyIncome + extraIncome;
+
     for (const g of groups) {
-      running += g.dayIncome - g.daySpent;
-      g.runningBalance = running;
+      running -= g.daySpent;
+      g.remaining = running;
     }
 
     return groups.reverse(); // newest first for display
