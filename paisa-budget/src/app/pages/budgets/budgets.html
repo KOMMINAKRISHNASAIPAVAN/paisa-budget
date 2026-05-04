@@ -455,48 +455,6 @@
   </div>
 }
 
-<!-- ── Month History ──────────────────────────────────────── -->
-@if (historyByPeriod().length > 0) {
-  <div class="history-section">
-    <div class="history-header">
-      <span class="history-header-icon">🗂️</span>
-      <span class="history-header-title">Month History</span>
-      <span class="history-header-count">{{ data.budgetHistory().length }} records</span>
-    </div>
-
-    @for (group of historyByPeriod(); track group.period) {
-      <div class="history-period-group">
-        <div class="history-period-label">{{ group.period }}</div>
-        <div class="history-cards">
-          @for (h of group.items; track h.id) {
-            <div class="history-card">
-              <div class="hc-left">
-                <span class="hc-icon">{{ h.icon }}</span>
-                <div class="hc-info">
-                  <div class="hc-category">{{ h.category }}</div>
-                  <div class="hc-period">{{ h.type | titlecase }}</div>
-                </div>
-              </div>
-              <div class="hc-right">
-                <div class="hc-amounts">
-                  <span class="hc-spent">₹{{ h.spent.toLocaleString() }} spent</span>
-                  <span class="hc-limit">of ₹{{ h.budgetLimit.toLocaleString() }}</span>
-                </div>
-                <div class="hc-saved"
-                     [style.color]="h.budgetLimit - h.spent > 0 ? 'var(--success)' : 'var(--danger)'">
-                  {{ h.budgetLimit - h.spent >= 0
-                     ? '₹' + (h.budgetLimit - h.spent).toLocaleString() + ' saved'
-                     : '₹' + Math.abs(h.budgetLimit - h.spent).toLocaleString() + ' over' }}
-                </div>
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-    }
-  </div>
-}
-
 <!-- ── Archive Modal ───────────────────────────────────────── -->
 @if (showRollover()) {
   <div class="modal-backdrop" (click)="skipRollover()">

@@ -61,6 +61,15 @@ export interface StoredNotification {
   createdAt: string;
 }
 
+const CACHE_KEY = 'paisa_cache_v1';
+
+interface AppCache {
+  budgets:    Budget[];
+  expenses:   ExpenseItem[];
+  dailyEntries: DailyEntry[];
+  notifications: StoredNotification[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class DataService {
 
@@ -74,9 +83,47 @@ export class DataService {
   private notifState = inject(NotifStateService);
   constructor(private http: HttpClient) {}
 
+  private readCache(): AppCache | null {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
+  private writeCache() {
+    try {
+      const cache: AppCache = {
+        budgets:       this.budgets(),
+        expenses:      this.expenses(),
+        dailyEntries:  this.dailyEntries(),
+        notifications: this.storedNotifications(),
+      };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+    } catch {}
+  }
+
   // ── Load ──────────────────────────────────────────────────
   async loadAll() {
-    await Promise.all([this.loadBudgets(), this.loadExpenses(), this.loadDailyEntries(), this.loadNotifications(), this.loadBudgetHistory()]);
+    // Serve cached data immediately so the UI is not blank
+    const cache = this.readCache();
+    if (cache) {
+      if (cache.budgets?.length)       this.budgets.set(cache.budgets);
+      if (cache.expenses?.length)      this.expenses.set(cache.expenses);
+      if (cache.dailyEntries?.length)  this.dailyEntries.set(cache.dailyEntries);
+      if (cache.notifications?.length) {
+        this.storedNotifications.set(cache.notifications);
+        if (cache.notifications.some(n => !n.read)) this.notifState.markUnread();
+      }
+    }
+
+    // Refresh from backend in the background
+    await Promise.all([
+      this.loadBudgets(),
+      this.loadExpenses(),
+      this.loadDailyEntries(),
+      this.loadNotifications(),
+    ]);
+    this.writeCache();
   }
 
   async loadNotifications() {
@@ -221,6 +268,7 @@ export class DataService {
         this.http.post<any[]>(`${environment.apiUrl}/api/budgets`, payload)
       );
       await this.loadBudgets();
+      this.writeCache();
       const count = newBudgets.length;
       this.toast.show(`${count} budget${count > 1 ? 's' : ''} created successfully!`, '💰');
       return { ok: true };
@@ -236,7 +284,7 @@ export class DataService {
         this.http.patch(`${environment.apiUrl}/api/budgets/${id}/archive`, {})
       );
       this.budgets.update(list => list.filter(b => b.id !== id));
-      await this.loadBudgetHistory();
+      this.writeCache();
     } catch {}
   }
 
@@ -246,6 +294,7 @@ export class DataService {
         this.http.patch(`${environment.apiUrl}/api/budgets/${id}/toggle`, {})
       );
       await this.loadBudgets();
+      this.writeCache();
     } catch {}
   }
 
@@ -276,6 +325,7 @@ export class DataService {
       const newItem = this.mapExpense(data);
       this.expenses.update(el => [newItem, ...el]);
       await this.loadBudgets();
+      this.writeCache();
       this.toast.show(`₹${item.amount.toLocaleString()} expense added — ${item.category}`, item.icon || '💸');
 
       // Check the budget for this expense's category after reload
@@ -317,6 +367,7 @@ export class DataService {
       const updated = this.mapExpense(data);
       this.expenses.update(el => el.map(e => e.id === id ? updated : e));
       await this.loadBudgets();
+      this.writeCache();
       return { ok: true };
     } catch (err: any) {
       return { ok: false, error: err?.error?.message ?? 'Failed to update expense.' };
@@ -330,6 +381,7 @@ export class DataService {
       );
       this.expenses.update(el => el.filter(e => e.id !== id));
       await this.loadBudgets();
+      this.writeCache();
     } catch {}
   }
 
@@ -449,5 +501,6 @@ export class DataService {
     this.expenses.set([]);
     this.dailyEntries.set([]);
     this.storedNotifications.set([]);
+    try { localStorage.removeItem(CACHE_KEY); } catch {}
   }
 }

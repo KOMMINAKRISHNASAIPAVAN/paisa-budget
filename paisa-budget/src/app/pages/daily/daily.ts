@@ -83,7 +83,7 @@ export class Daily {
       .reduce((s, e) => s + e.amount, 0);
   });
 
-  // Group by date for display
+  // Group by date with running balance (oldest→newest accumulation, displayed newest-first)
   grouped = computed(() => {
     const map = new Map<string, { id: string; description: string; amount: number; note: string; entryType: 'INCOME' | 'EXPENSE'; entryDate: string }[]>();
     for (const e of this.monthEntries()) {
@@ -91,13 +91,34 @@ export class Daily {
       list.push(e);
       map.set(e.entryDate, list);
     }
-    return Array.from(map.entries()).map(([date, items]) => ({
-      date,
-      items,
-      dayIncome: items.filter(i => i.entryType === 'INCOME').reduce((s, i) => s + i.amount, 0),
-      daySpent:  items.filter(i => i.entryType === 'EXPENSE').reduce((s, i) => s + i.amount, 0),
-    }));
+
+    const groups = Array.from(map.entries())
+      .map(([date, items]) => ({
+        date,
+        items,
+        dayIncome: items.filter(i => i.entryType === 'INCOME').reduce((s, i) => s + i.amount, 0),
+        daySpent:  items.filter(i => i.entryType === 'EXPENSE').reduce((s, i) => s + i.amount, 0),
+        runningBalance: 0,
+      }))
+      .sort((a, b) => this.parseEntryDate(a.date) - this.parseEntryDate(b.date));
+
+    let running = 0;
+    for (const g of groups) {
+      running += g.dayIncome - g.daySpent;
+      g.runningBalance = running;
+    }
+
+    return groups.reverse(); // newest first for display
   });
+
+  private parseEntryDate(dateStr: string): number {
+    const months: Record<string, number> = {
+      Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+      Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+    };
+    const [day, mon, year] = dateStr.split(' ');
+    return new Date(+year, months[mon] ?? 0, +day).getTime();
+  }
 
   // ── Add entry ─────────────────────────────────────────────
   async addEntry() {

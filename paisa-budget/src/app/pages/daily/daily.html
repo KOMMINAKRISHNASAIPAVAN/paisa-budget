@@ -184,13 +184,18 @@
       <div class="day-group">
         <div class="day-header">
           <span class="day-date">{{ group.date }}</span>
-          <div class="day-totals">
-            @if (group.dayIncome > 0) {
-              <span class="day-income">+₹{{ group.dayIncome.toLocaleString() }}</span>
-            }
-            @if (group.daySpent > 0) {
-              <span class="day-spent">-₹{{ group.daySpent.toLocaleString() }}</span>
-            }
+          <div class="day-header-right">
+            <div class="day-totals">
+              @if (group.dayIncome > 0) {
+                <span class="day-income">+₹{{ group.dayIncome.toLocaleString() }}</span>
+              }
+              @if (group.daySpent > 0) {
+                <span class="day-spent">-₹{{ group.daySpent.toLocaleString() }}</span>
+              }
+            </div>
+            <div class="day-remaining" [class.positive]="group.runningBalance >= 0" [class.negative]="group.runningBalance < 0">
+              ₹{{ Math.abs(group.runningBalance).toLocaleString() }} remaining
+            </div>
           </div>
         </div>
 
