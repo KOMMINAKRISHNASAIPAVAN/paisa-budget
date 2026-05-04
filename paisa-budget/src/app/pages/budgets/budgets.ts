@@ -1,7 +1,7 @@
 import { Component, computed, signal, inject, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgTemplateOutlet, TitleCasePipe } from '@angular/common';
-import { DataService, Budget, BudgetHistory } from '../../services/data.service';
+import { NgTemplateOutlet } from '@angular/common';
+import { DataService, Budget } from '../../services/data.service';
 import { AuthService } from '../../services/auth';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 
@@ -16,7 +16,7 @@ interface Allocation {
 
 @Component({
   selector: 'app-budgets',
-  imports: [FormsModule, NgTemplateOutlet, TitleCasePipe, TranslatePipe],
+  imports: [FormsModule, NgTemplateOutlet, TranslatePipe],
   templateUrl: './budgets.html',
   styleUrl: './budgets.scss',
 })
@@ -199,18 +199,6 @@ export class Budgets {
   summaryTotal  = computed(() => this.activeBudgets().reduce((s, b) => s + b.limit, 0));
   summarySpent  = computed(() => this.activeBudgets().reduce((s, b) => s + b.spent, 0));
   summaryLeft   = computed(() => this.summaryTotal() - this.summarySpent());
-
-  // ── History ──────────────────────────────────────────
-  historyByPeriod = computed(() => {
-    const map = new Map<string, BudgetHistory[]>();
-    for (const h of this.data.budgetHistory()) {
-      const key = h.periodLabel || 'Unknown Period';
-      const list = map.get(key) ?? [];
-      list.push(h);
-      map.set(key, list);
-    }
-    return Array.from(map.entries()).map(([period, items]) => ({ period, items }));
-  });
 
   setFilter(p: PeriodFilter) { this.activePeriod.set(p); }
 
