@@ -12,8 +12,10 @@ export interface UserAccount {
   savingsGoal: number;
 }
 
-const TOKEN_KEY   = 'paisa_token';
-const SESSION_KEY = 'paisa_session';
+const TOKEN_KEY    = 'paisa_token';
+const SESSION_KEY  = 'paisa_session';
+const REFRESH_KEY  = 'paisa_refresh_time';
+const REFRESH_TTL  = 10 * 60 * 1000; // 10 minutes
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -24,7 +26,7 @@ export class AuthService {
   currentUser = computed(() => this._user());
 
   constructor(private http: HttpClient, private router: Router) {
-    if (this.loadSession()) this.refreshUser();
+    if (this.loadSession() && this.isSessionStale()) this.refreshUser();
   }
 
   async refreshUser() {
@@ -36,7 +38,14 @@ export class AuthService {
         })
       );
       this.saveSession(this.getToken()!, { id: user.id, name: user.name, phone: user.phone, monthlyIncome: user.monthlyIncome ?? 0, savingsGoal: user.savingsGoal ?? 0 });
+      localStorage.setItem(REFRESH_KEY, Date.now().toString());
     } catch { }
+  }
+
+  private isSessionStale(): boolean {
+    const last = localStorage.getItem(REFRESH_KEY);
+    if (!last) return true;
+    return Date.now() - parseInt(last, 10) > REFRESH_TTL;
   }
 
   async register(name: string, phone: string, password: string): Promise<{ ok: boolean; error?: string }> {
@@ -93,6 +102,7 @@ export class AuthService {
   logout() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(REFRESH_KEY);
     this._user.set(null);
     this.router.navigate(['/login']);
   }

@@ -46,6 +46,20 @@ public class DailyEntryService {
     }
 
     @Transactional
+    public DailyEntry updateEntry(Long userId, Long entryId, DailyEntryRequest req) {
+        DailyEntry entry = repo.findByIdAndUserId(entryId, userId)
+            .orElseThrow(() -> new RuntimeException("Entry not found"));
+
+        entry.setDescription(req.getDescription());
+        entry.setAmount(req.getAmount());
+        entry.setNote(req.getNote());
+        if (req.getEntryType() != null) entry.setEntryType(req.getEntryType());
+        if (req.getEntryDate() != null) entry.setEntryDate(req.getEntryDate());
+
+        return repo.save(entry);
+    }
+
+    @Transactional
     public void deleteEntry(Long userId, Long entryId) {
         DailyEntry entry = repo.findByIdAndUserId(entryId, userId)
             .orElseThrow(() -> new RuntimeException("Entry not found"));

@@ -55,7 +55,7 @@ export class ForgotPassword {
   resetPassword() {
     this.error.set('');
     if (!this.otpInput.trim()) { this.error.set('Enter the OTP.'); return; }
-    if (this.newPassword.length < 6) { this.error.set('Password must be at least 6 characters.'); return; }
+    if (this.newPassword.length < 8) { this.error.set('Password must be at least 8 characters.'); return; }
 
     this.loading.set(true);
     this.http

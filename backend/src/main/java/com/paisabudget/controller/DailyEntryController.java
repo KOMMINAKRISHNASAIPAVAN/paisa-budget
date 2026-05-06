@@ -36,6 +36,13 @@ public class DailyEntryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.addEntry(userId(u), req));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<DailyEntry> update(@AuthenticationPrincipal UserDetails u,
+                                             @PathVariable Long id,
+                                             @RequestBody DailyEntryRequest req) {
+        return ResponseEntity.ok(service.updateEntry(userId(u), id, req));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@AuthenticationPrincipal UserDetails u, @PathVariable Long id) {
         service.deleteEntry(userId(u), id);
